@@ -1,10 +1,8 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
-  const authorization = getHeader(event, 'authorization') || ''
-  const accessToken = authorization.startsWith('Bearer ')
-    ? authorization.slice(7).trim()
-    : ''
+  const body = await readBody<any>(event)
+  const accessToken = String(body?.access_token || '').trim()
 
   if (!accessToken) {
     throw createError({ statusCode: 401, statusMessage: 'Authentication required.' })
@@ -36,7 +34,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: 'Admin access required.' })
   }
 
-  const body = await readBody<any>(event)
   const email = String(body.email || '').trim().toLowerCase()
   const firstName = String(body.first_name || '').trim()
   const lastName = String(body.last_name || '').trim()

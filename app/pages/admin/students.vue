@@ -40,8 +40,7 @@ const createStudent = async () => {
     if (!accessToken) throw new Error('Your login session has expired. Please sign in again.')
     const result:any = await $fetch('/api/admin/students/create', {
       method:'POST',
-      headers:{ Authorization:`Bearer ${accessToken}` },
-      body:newStudent
+      body:{ ...newStudent, access_token: accessToken }
     })
     message.value = `Student created. Temporary password: ${result.temporary_password}`
     Object.assign(newStudent,{ first_name:'', last_name:'', email:'', student_number:'', year_level:null, house_id:null, temporary_password:'' })
@@ -80,8 +79,7 @@ const importCsv = async (event:Event) => {
     if (!accessToken) throw new Error('Your login session has expired. Please sign in again.')
     const result:any = await $fetch('/api/admin/students/import',{
       method:'POST',
-      headers:{ Authorization:`Bearer ${accessToken}` },
-      body:{rows:parsed}
+      body:{ rows:parsed, access_token: accessToken }
     })
     importResults.value=result.results || []
     message.value=`Import complete: ${result.successful} successful, ${result.failed} failed.`

@@ -11,10 +11,8 @@ type ImportRow = {
 }
 
 export default defineEventHandler(async (event) => {
-  const authorization = getHeader(event, 'authorization') || ''
-  const accessToken = authorization.startsWith('Bearer ')
-    ? authorization.slice(7).trim()
-    : ''
+  const body = await readBody<{ rows?: ImportRow[]; access_token?: string }>(event)
+  const accessToken = String(body?.access_token || '').trim()
 
   if (!accessToken) {
     throw createError({ statusCode: 401, statusMessage: 'Authentication required.' })
@@ -46,7 +44,6 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: 'Admin access required.' })
   }
 
-  const body = await readBody<{ rows?: ImportRow[] }>(event)
   const rows = Array.isArray(body?.rows) ? body.rows : []
   if (!rows.length) throw createError({ statusCode: 400, statusMessage: 'No student rows supplied.' })
   if (rows.length > 1000) throw createError({ statusCode: 400, statusMessage: 'Maximum 1000 students per import.' })
