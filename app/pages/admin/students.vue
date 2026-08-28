@@ -70,6 +70,7 @@ const loadStudents = async () => {
         )
       `)
       .eq('role', 'student')
+      .order('year_level', { ascending: true })
       .order('last_name', { ascending: true })
       .order('first_name', { ascending: true })
 
