@@ -16,6 +16,24 @@ const saving = ref(false)
 const message = ref('')
 const errorMessage = ref('')
 
+const showEdit = ref(false)
+const editSaving = ref(false)
+const deleting = ref(false)
+const sports = ref<any[]>([])
+const teachers = ref<any[]>([])
+
+const editForm = reactive({
+  name: '',
+  sport_id: null as number | null,
+  year_level: null as number | null,
+  gender: 'mixed',
+  event_date: '',
+  start_time: '',
+  location: '',
+  teacher_id: null as string | null,
+  status: 'scheduled',
+})
+
 const eventId = computed(() => Number(route.params.id))
 
 const participantIds = computed(() => new Set(participants.value.map((p: any) => p.student_id)))
@@ -36,6 +54,169 @@ const availableStudents = computed(() => {
       return matchesSearch && matchesHouse
     })
 })
+
+const populateEditForm = () => {
+  if (!event.value) return
+
+  Object.assign(editForm, {
+    name: event.value.name || '',
+    sport_id: event.value.sport_id ?? null,
+    year_level: event.value.year_level ?? null,
+    gender: event.value.gender || 'mixed',
+    event_date: event.value.event_date || '',
+    start_time: event.value.start_time ? String(event.value.start_time).slice(0, 5) : '',
+    location: event.value.location || '',
+    teacher_id: event.value.teacher_id ?? null,
+    status: event.value.status || 'scheduled',
+  })
+}
+
+const loadEditOptions = async () => {
+  const [sportsResult, teachersResult] = await Promise.all([
+    supabase
+      .from('sports')
+      .select('id,name')
+      .eq('active', true)
+      .order('name'),
+    supabase
+      .from('profiles')
+      .select('id,first_name,last_name')
+      .eq('role', 'teacher')
+      .eq('active', true)
+      .order('last_name', { ascending: true })
+      .order('first_name', { ascending: true }),
+  ])
+
+  if (sportsResult.error) {
+    throw new Error(sportsResult.error.message)
+  }
+
+  if (teachersResult.error) {
+    throw new Error(teachersResult.error.message)
+  }
+
+  sports.value = sportsResult.data || []
+  teachers.value = teachersResult.data || []
+}
+
+const openEdit = async () => {
+  errorMessage.value = ''
+  message.value = ''
+
+  try {
+    if (!sports.value.length && !teachers.value.length) {
+      await loadEditOptions()
+    }
+
+    populateEditForm()
+    showEdit.value = true
+  } catch (error: any) {
+    errorMessage.value = error?.message || 'Could not load event editing options.'
+  }
+}
+
+const saveEvent = async () => {
+  errorMessage.value = ''
+  message.value = ''
+
+  if (!editForm.name.trim()) {
+    errorMessage.value = 'Event name is required.'
+    return
+  }
+
+  if (!editForm.sport_id) {
+    errorMessage.value = 'Select a sport.'
+    return
+  }
+
+  if (!editForm.event_date) {
+    errorMessage.value = 'Event date is required.'
+    return
+  }
+
+  editSaving.value = true
+
+  try {
+    const accessToken = await getAccessToken()
+
+    const result: any = await $fetch('/api/admin/events/manage', {
+      method: 'POST',
+      body: {
+        action: 'update',
+        event_id: eventId.value,
+        access_token: accessToken,
+        event: {
+          name: editForm.name,
+          sport_id: editForm.sport_id,
+          year_level: editForm.year_level,
+          gender: editForm.gender,
+          event_date: editForm.event_date,
+          start_time: editForm.start_time,
+          location: editForm.location,
+          teacher_id: editForm.teacher_id,
+          status: editForm.status,
+        },
+      },
+    })
+
+    showEdit.value = false
+    message.value = result?.message || 'Event updated.'
+    await load()
+  } catch (error: any) {
+    console.error('UPDATE EVENT ERROR:', error)
+    errorMessage.value =
+      error?.data?.statusMessage ||
+      error?.data?.message ||
+      error?.message ||
+      'Could not update this event.'
+  } finally {
+    editSaving.value = false
+  }
+}
+
+const deleteEvent = async () => {
+  if (!event.value) return
+
+  const confirmed = confirm(
+    `Delete "${event.value.name}"?\n\nThis will also remove its participant assignments and results. This cannot be undone.`
+  )
+
+  if (!confirmed) return
+
+  const confirmedAgain = confirm(
+    'Are you sure? Click OK to permanently delete this event.'
+  )
+
+  if (!confirmedAgain) return
+
+  deleting.value = true
+  errorMessage.value = ''
+  message.value = ''
+
+  try {
+    const accessToken = await getAccessToken()
+
+    await $fetch('/api/admin/events/manage', {
+      method: 'POST',
+      body: {
+        action: 'delete',
+        event_id: eventId.value,
+        access_token: accessToken,
+      },
+    })
+
+    await navigateTo('/admin/events')
+  } catch (error: any) {
+    console.error('DELETE EVENT ERROR:', error)
+    errorMessage.value =
+      error?.data?.statusMessage ||
+      error?.data?.message ||
+      error?.message ||
+      'Could not delete this event.'
+  } finally {
+    deleting.value = false
+  }
+}
 
 const load = async () => {
   loading.value = true
@@ -75,6 +256,10 @@ const load = async () => {
       ...eventRow,
       sport: sportResult.data || null,
       teacher: teacherResult.data || null,
+    }
+
+    if (showEdit.value) {
+      populateEditForm()
     }
 
     // Load assignment data through the verified Admin API.
@@ -294,13 +479,136 @@ watch(() => route.params.id, async (value, oldValue) => {
           </p>
         </div>
 
-        <NuxtLink :to="`/teacher/events/${event.id}`" class="rounded-lg bg-emerald-600 px-4 py-2 text-center font-semibold text-white">
-          Open Result Entry
-        </NuxtLink>
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="rounded-lg bg-blue-600 px-4 py-2 text-center font-semibold text-white hover:bg-blue-700"
+            @click="openEdit"
+          >
+            Edit Event
+          </button>
+
+          <NuxtLink
+            :to="`/teacher/events/${event.id}`"
+            class="rounded-lg bg-emerald-600 px-4 py-2 text-center font-semibold text-white hover:bg-emerald-700"
+          >
+            Open Result Entry
+          </NuxtLink>
+
+          <button
+            type="button"
+            :disabled="deleting"
+            class="rounded-lg bg-red-50 px-4 py-2 text-center font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
+            @click="deleteEvent"
+          >
+            {{ deleting ? 'Deleting...' : 'Delete Event' }}
+          </button>
+        </div>
       </div>
 
       <div v-if="message" class="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-emerald-700">{{ message }}</div>
       <div v-if="errorMessage" class="mt-5 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700">{{ errorMessage }}</div>
+
+      <section v-if="showEdit" class="mt-6 rounded-xl border border-blue-200 bg-white p-5 shadow-sm">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold">Edit Event</h2>
+            <p class="text-sm text-slate-500">Correct event details without changing assigned students.</p>
+          </div>
+
+          <button
+            type="button"
+            class="text-sm font-semibold text-slate-500 hover:text-slate-700"
+            @click="showEdit = false"
+          >
+            Close
+          </button>
+        </div>
+
+        <form class="mt-5 grid gap-4 md:grid-cols-3" @submit.prevent="saveEvent">
+          <label class="md:col-span-2">
+            <span class="mb-1 block text-sm font-semibold text-slate-700">Event name</span>
+            <input v-model="editForm.name" required class="w-full rounded-lg border px-3 py-2" />
+          </label>
+
+          <label>
+            <span class="mb-1 block text-sm font-semibold text-slate-700">Sport</span>
+            <select v-model.number="editForm.sport_id" required class="w-full rounded-lg border px-3 py-2">
+              <option :value="null">Select sport</option>
+              <option v-for="sport in sports" :key="sport.id" :value="sport.id">{{ sport.name }}</option>
+            </select>
+          </label>
+
+          <label>
+            <span class="mb-1 block text-sm font-semibold text-slate-700">Year level</span>
+            <input v-model.number="editForm.year_level" type="number" min="1" max="12" class="w-full rounded-lg border px-3 py-2" />
+          </label>
+
+          <label>
+            <span class="mb-1 block text-sm font-semibold text-slate-700">Gender / category</span>
+            <select v-model="editForm.gender" class="w-full rounded-lg border px-3 py-2">
+              <option value="mixed">Mixed</option>
+              <option value="female">Girls</option>
+              <option value="male">Boys</option>
+              <option value="open">Open</option>
+            </select>
+          </label>
+
+          <label>
+            <span class="mb-1 block text-sm font-semibold text-slate-700">Location</span>
+            <input v-model="editForm.location" class="w-full rounded-lg border px-3 py-2" />
+          </label>
+
+          <label>
+            <span class="mb-1 block text-sm font-semibold text-slate-700">Date</span>
+            <input v-model="editForm.event_date" type="date" required class="w-full rounded-lg border px-3 py-2" />
+          </label>
+
+          <label>
+            <span class="mb-1 block text-sm font-semibold text-slate-700">Start time</span>
+            <input v-model="editForm.start_time" type="time" class="w-full rounded-lg border px-3 py-2" />
+          </label>
+
+          <label>
+            <span class="mb-1 block text-sm font-semibold text-slate-700">Teacher</span>
+            <select v-model="editForm.teacher_id" class="w-full rounded-lg border px-3 py-2">
+              <option :value="null">No teacher assigned</option>
+              <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
+                {{ teacher.first_name }} {{ teacher.last_name }}
+              </option>
+            </select>
+          </label>
+
+          <label>
+            <span class="mb-1 block text-sm font-semibold text-slate-700">Status</span>
+            <select v-model="editForm.status" class="w-full rounded-lg border px-3 py-2">
+              <option value="scheduled">Scheduled</option>
+              <option value="open">Open</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </label>
+
+          <div class="flex items-end gap-2 md:col-span-3">
+            <button
+              type="submit"
+              :disabled="editSaving"
+              class="rounded-lg bg-blue-600 px-5 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {{ editSaving ? 'Saving...' : 'Save Event Changes' }}
+            </button>
+
+            <button
+              type="button"
+              class="rounded-lg border px-5 py-2 font-semibold text-slate-700 hover:bg-slate-50"
+              @click="showEdit = false"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </section>
 
       <section class="mt-6 rounded-xl border bg-white p-5">
         <h2 class="text-lg font-bold">Assigned Students ({{ participants.length }})</h2>
