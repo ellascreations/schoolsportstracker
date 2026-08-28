@@ -68,7 +68,7 @@ const importCsv = async (event:Event) => {
   try {
     const parsed=parseCsv(await file.text())
     if(!parsed.length) throw new Error('The CSV contains no student rows.')
-    const result:any = await $fetch('/api/admin/students/import',{method:'POST',body:{rows:parsed}})
+    const result:any = await $fetch('/api/admin/students/import',{method:'POST',credentials:'include',body:{rows:parsed}})
     importResults.value=result.results || []
     message.value=`Import complete: ${result.successful} successful, ${result.failed} failed.`
     await load()

@@ -1,30 +1,7 @@
 export default defineNuxtRouteMiddleware(async () => {
+  const user = useSupabaseUser()
+  if (!user.value) return navigateTo('/login')
   const supabase = useSupabaseClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return navigateTo('/login')
-  }
-
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('role, active')
-    .eq('id', user.id)
-    .single()
-
-  if (error) {
-    console.error('ADMIN ROLE CHECK ERROR:', error)
-    return navigateTo('/dashboard')
-  }
-
-  if (!profile?.active) {
-    return navigateTo('/dashboard')
-  }
-
-  if (profile.role !== 'admin') {
-    return navigateTo('/dashboard')
-  }
+  const { data } = await supabase.from('profiles').select('role').eq('id', user.value.id).single()
+  if (data?.role !== 'admin') return navigateTo('/dashboard')
 })

@@ -1,11 +1,21 @@
-import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
+import { serverSupabaseClient, serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   const user = await serverSupabaseUser(event)
   if (!user) throw createError({ statusCode: 401, statusMessage: 'Authentication required.' })
+  const client = await serverSupabaseClient(event)
+  const { data: requester, error: requesterError } = await client
+    .from('profiles')
+    .select('role, active')
+    .eq('id', user.id)
+    .single()
+
+  if (requesterError || !requester?.active || requester.role !== 'admin') {
+    console.error('STUDENT ADMIN CHECK ERROR:', requesterError)
+    throw createError({ statusCode: 403, statusMessage: 'Admin access required.' })
+  }
+
   const admin = serverSupabaseServiceRole(event)
-  const { data: requester } = await admin.from('profiles').select('role').eq('id', user.id).single()
-  if (requester?.role !== 'admin') throw createError({ statusCode: 403, statusMessage: 'Admin access required.' })
 
   const body = await readBody<any>(event)
   const email = String(body.email || '').trim().toLowerCase()
