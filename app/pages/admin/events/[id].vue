@@ -11,7 +11,7 @@ const houses = ref<any[]>([])
 const selected = ref<string[]>([])
 const search = ref('')
 const houseFilter = ref('')
-const loading = ref(false)
+const loading = ref(true)
 const saving = ref(false)
 const message = ref('')
 const errorMessage = ref('')
@@ -40,44 +40,77 @@ const availableStudents = computed(() => {
 const load = async () => {
   loading.value = true
   errorMessage.value = ''
+  message.value = ''
 
-  if (!Number.isFinite(eventId.value) || eventId.value <= 0) {
+  const id = Number(route.params.id)
+
+  if (!Number.isInteger(id) || id <= 0) {
     errorMessage.value = 'Invalid event ID.'
     loading.value = false
     return
   }
 
   try {
+    // Load the event first so the page can always render the event header.
+    const { data: eventRow, error: eventError } = await supabase
+      .from('events')
+      .select('id,name,sport_id,year_level,gender,event_date,start_time,location,teacher_id,status')
+      .eq('id', id)
+      .single()
+
+    if (eventError || !eventRow) {
+      throw new Error(eventError?.message || `Event ${id} was not found.`)
+    }
+
+    const [sportResult, teacherResult] = await Promise.all([
+      eventRow.sport_id
+        ? supabase.from('sports').select('id,name,measurement_type').eq('id', eventRow.sport_id).maybeSingle()
+        : Promise.resolve({ data: null, error: null } as any),
+      eventRow.teacher_id
+        ? supabase.from('profiles').select('id,first_name,last_name').eq('id', eventRow.teacher_id).maybeSingle()
+        : Promise.resolve({ data: null, error: null } as any),
+    ])
+
+    event.value = {
+      ...eventRow,
+      sport: sportResult.data || null,
+      teacher: teacherResult.data || null,
+    }
+
+    // Load assignment data through the verified Admin API.
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session?.access_token) {
-      throw new Error('Authentication required. Please sign out and back in.')
+      errorMessage.value = 'The event loaded, but your login session could not be verified for student assignments. Please sign out and back in.'
+      return
     }
 
     const result: any = await $fetch('/api/admin/events/participants', {
       method: 'POST',
       body: {
         action: 'load',
-        event_id: eventId.value,
+        event_id: id,
         access_token: session.access_token,
       },
     })
 
-    event.value = result.event || null
     students.value = result.students || []
     participants.value = result.participants || []
     houses.value = result.houses || []
   } catch (error: any) {
     console.error('LOAD ASSIGN STUDENTS ERROR:', error)
-    event.value = null
-    students.value = []
-    participants.value = []
-    houses.value = []
+
+    if (!event.value) {
+      students.value = []
+      participants.value = []
+      houses.value = []
+    }
+
     errorMessage.value =
       error?.data?.statusMessage ||
       error?.data?.message ||
       error?.message ||
-      'Could not load Assign Students.'
+      'Could not load this event.'
   } finally {
     loading.value = false
   }
@@ -218,7 +251,13 @@ const clearSelection = () => {
   selected.value = []
 }
 
-onMounted(load)
+onMounted(async () => {
+  await load()
+})
+
+watch(() => route.params.id, async (value, oldValue) => {
+  if (value !== oldValue) await load()
+})
 </script>
 
 <template>
@@ -232,6 +271,14 @@ onMounted(load)
     <div v-else-if="errorMessage && !event" class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
       <div class="font-semibold">Unable to open Assign Students</div>
       <div class="mt-1 text-sm">{{ errorMessage }}</div>
+    </div>
+
+    <div v-else-if="!event" class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800">
+      <div class="font-semibold">Event page did not initialise.</div>
+      <div class="mt-1 text-sm">Event ID: {{ route.params.id }}</div>
+      <button type="button" class="mt-3 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white" @click="load">
+        Retry loading event
+      </button>
     </div>
 
     <div v-else-if="event">
