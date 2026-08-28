@@ -35,7 +35,14 @@ const load = async () => {
 const createStudent = async () => {
   saving.value = true; message.value=''; errorMessage.value=''
   try {
-    const result:any = await $fetch('/api/admin/students/create', { method:'POST', body:newStudent })
+    const { data: sessionData } = await supabase.auth.getSession()
+    const accessToken = sessionData.session?.access_token
+    if (!accessToken) throw new Error('Your login session has expired. Please sign in again.')
+    const result:any = await $fetch('/api/admin/students/create', {
+      method:'POST',
+      headers:{ Authorization:`Bearer ${accessToken}` },
+      body:newStudent
+    })
     message.value = `Student created. Temporary password: ${result.temporary_password}`
     Object.assign(newStudent,{ first_name:'', last_name:'', email:'', student_number:'', year_level:null, house_id:null, temporary_password:'' })
     await load()
@@ -68,7 +75,14 @@ const importCsv = async (event:Event) => {
   try {
     const parsed=parseCsv(await file.text())
     if(!parsed.length) throw new Error('The CSV contains no student rows.')
-    const result:any = await $fetch('/api/admin/students/import',{method:'POST',credentials:'include',body:{rows:parsed}})
+    const { data: sessionData } = await supabase.auth.getSession()
+    const accessToken = sessionData.session?.access_token
+    if (!accessToken) throw new Error('Your login session has expired. Please sign in again.')
+    const result:any = await $fetch('/api/admin/students/import',{
+      method:'POST',
+      headers:{ Authorization:`Bearer ${accessToken}` },
+      body:{rows:parsed}
+    })
     importResults.value=result.results || []
     message.value=`Import complete: ${result.successful} successful, ${result.failed} failed.`
     await load()

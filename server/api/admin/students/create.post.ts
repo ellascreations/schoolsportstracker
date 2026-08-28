@@ -1,21 +1,40 @@
-import { serverSupabaseClient, serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
+import { serverSupabaseServiceRole } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
-  const user = await serverSupabaseUser(event)
-  if (!user) throw createError({ statusCode: 401, statusMessage: 'Authentication required.' })
-  const client = await serverSupabaseClient(event)
-  const { data: requester, error: requesterError } = await client
-    .from('profiles')
-    .select('role, active')
-    .eq('id', user.id)
-    .single()
+  const authorization = getHeader(event, 'authorization') || ''
+  const accessToken = authorization.startsWith('Bearer ')
+    ? authorization.slice(7).trim()
+    : ''
 
-  if (requesterError || !requester?.active || requester.role !== 'admin') {
-    console.error('STUDENT ADMIN CHECK ERROR:', requesterError)
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required.' })
+  if (!accessToken) {
+    throw createError({ statusCode: 401, statusMessage: 'Authentication required.' })
   }
 
   const admin = serverSupabaseServiceRole(event)
+
+  const { data: authData, error: authError } = await admin.auth.getUser(accessToken)
+  const authUser = authData?.user
+
+  if (authError || !authUser) {
+    console.error('STUDENT API AUTH ERROR:', authError)
+    throw createError({ statusCode: 401, statusMessage: 'Your login session could not be verified.' })
+  }
+
+  const { data: requester, error: requesterError } = await admin
+    .from('profiles')
+    .select('role, active')
+    .eq('id', authUser.id)
+    .single()
+
+  if (requesterError || !requester?.active || requester.role !== 'admin') {
+    console.error('STUDENT ADMIN CHECK ERROR:', {
+      requesterError,
+      userId: authUser.id,
+      email: authUser.email,
+      requester
+    })
+    throw createError({ statusCode: 403, statusMessage: 'Admin access required.' })
+  }
 
   const body = await readBody<any>(event)
   const email = String(body.email || '').trim().toLowerCase()
