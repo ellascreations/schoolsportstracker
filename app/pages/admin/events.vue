@@ -179,12 +179,12 @@ onMounted(load)
 
         <span class="text-sm capitalize text-slate-600">{{ String(event.status || '').replaceAll('_', ' ') }}</span>
 
-        <a
-  :href="`/admin/events/${event.id}`"
+        <NuxtLink
+  :to="`/admin/events/${event.id}`"
   class="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100"
 >
   Assign Students
-</a>
+</NuxtLink>
       </div>
     </section>
   </main>
