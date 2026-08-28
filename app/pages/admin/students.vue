@@ -1,0 +1,5 @@
+<script setup lang="ts">
+definePageMeta({ middleware: 'admin' }); const supabase=useSupabaseClient(); const rows=ref<any[]>([])
+onMounted(async()=>{const{data}=await supabase.from('profiles').select('id,first_name,last_name,email,year_level,active,house:houses(name)').eq('role','student').order('last_name');rows.value=data||[]})
+</script>
+<template><main class="mx-auto max-w-7xl px-4 py-8"><NuxtLink to="/admin" class="text-sm font-semibold text-blue-600">← Admin Dashboard</NuxtLink><h1 class="mt-3 text-3xl font-bold">Students</h1><div class="mt-6 overflow-hidden rounded-xl border bg-white"><table class="w-full text-left"><thead class="bg-slate-50"><tr><th class="p-4">Student</th><th>Email</th><th>Year</th><th>House</th><th>Status</th></tr></thead><tbody><tr v-for="r in rows" :key="r.id" class="border-t"><td class="p-4 font-semibold">{{r.last_name}}, {{r.first_name}}</td><td>{{r.email}}</td><td>{{r.year_level||'—'}}</td><td>{{r.house?.name||'—'}}</td><td>{{r.active?'Active':'Inactive'}}</td></tr></tbody></table></div></main></template>

@@ -1,0 +1,8 @@
+<script setup lang="ts">
+definePageMeta({ middleware: 'admin' })
+const supabase=useSupabaseClient(); const sports=ref<any[]>([]); const form=reactive({name:'',category:'Athletics',measurement_type:'time'})
+const load=async()=>{const{data}=await supabase.from('sports').select('*').order('name');sports.value=data||[]}
+const add=async()=>{await supabase.from('sports').insert(form);form.name='';await load()}
+onMounted(load)
+</script>
+<template><main class="mx-auto max-w-5xl px-4 py-8"><NuxtLink to="/admin" class="text-sm font-semibold text-blue-600">← Admin Dashboard</NuxtLink><h1 class="mt-3 text-3xl font-bold">Sports</h1><form class="mt-6 grid gap-3 rounded-xl border bg-white p-5 md:grid-cols-4" @submit.prevent="add"><input v-model="form.name" required placeholder="Sport / event name" class="rounded-lg border px-4 py-2 md:col-span-2"><input v-model="form.category" placeholder="Category" class="rounded-lg border px-4 py-2"><select v-model="form.measurement_type" class="rounded-lg border px-4 py-2"><option>time</option><option>distance</option><option>height</option><option>points</option><option>position</option></select><button class="rounded-lg bg-blue-600 px-5 py-2 font-semibold text-white md:col-span-4">Add Sport</button></form><div class="mt-5 overflow-hidden rounded-xl border bg-white"><table class="w-full text-left"><thead class="bg-slate-50"><tr><th class="p-4">Sport</th><th>Category</th><th>Measurement</th></tr></thead><tbody><tr v-for="s in sports" :key="s.id" class="border-t"><td class="p-4 font-semibold">{{s.name}}</td><td>{{s.category}}</td><td class="capitalize">{{s.measurement_type}}</td></tr></tbody></table></div></main></template>
