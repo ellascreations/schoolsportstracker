@@ -45,7 +45,7 @@ const currentBatch = ref(0)
 const totalBatches = ref(0)
 const processedCount = ref(0)
 
-const BATCH_SIZE = 100
+const BATCH_SIZE = 20
 const MAX_IMPORT_ROWS = 2000
 
 const loadStudents = async () => {
