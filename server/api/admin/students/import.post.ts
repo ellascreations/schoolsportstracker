@@ -1,4 +1,4 @@
-import { serverSupabaseServiceRole } from '#supabase/server'
+import { requireAdmin } from '../../../utils/requireAdmin'
 
 type ImportRow = {
   student_number?: string
@@ -12,37 +12,7 @@ type ImportRow = {
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<{ rows?: ImportRow[]; access_token?: string }>(event)
-  const accessToken = String(body?.access_token || '').trim()
-
-  if (!accessToken) {
-    throw createError({ statusCode: 401, statusMessage: 'Authentication required.' })
-  }
-
-  const admin = serverSupabaseServiceRole(event)
-
-  const { data: authData, error: authError } = await admin.auth.getUser(accessToken)
-  const authUser = authData?.user
-
-  if (authError || !authUser) {
-    console.error('STUDENT API AUTH ERROR:', authError)
-    throw createError({ statusCode: 401, statusMessage: 'Your login session could not be verified.' })
-  }
-
-  const { data: requester, error: requesterError } = await admin
-    .from('profiles')
-    .select('role, active')
-    .eq('id', authUser.id)
-    .single()
-
-  if (requesterError || !requester?.active || requester.role !== 'admin') {
-    console.error('STUDENT ADMIN CHECK ERROR:', {
-      requesterError,
-      userId: authUser.id,
-      email: authUser.email,
-      requester
-    })
-    throw createError({ statusCode: 403, statusMessage: 'Admin access required.' })
-  }
+  const { admin } = await requireAdmin(event, body?.access_token)
 
   const rows = Array.isArray(body?.rows) ? body.rows : []
   if (!rows.length) throw createError({ statusCode: 400, statusMessage: 'No student rows supplied.' })

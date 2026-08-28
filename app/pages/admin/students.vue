@@ -40,6 +40,7 @@ const createStudent = async () => {
     if (!accessToken) throw new Error('Your login session has expired. Please sign in again.')
     const result:any = await $fetch('/api/admin/students/create', {
       method:'POST',
+      headers:{ Authorization: `Bearer ${accessToken}` },
       body:{ ...newStudent, access_token: accessToken }
     })
     message.value = `Student created. Temporary password: ${result.temporary_password}`
@@ -79,6 +80,7 @@ const importCsv = async (event:Event) => {
     if (!accessToken) throw new Error('Your login session has expired. Please sign in again.')
     const result:any = await $fetch('/api/admin/students/import',{
       method:'POST',
+      headers:{ Authorization: `Bearer ${accessToken}` },
       body:{ rows:parsed, access_token: accessToken }
     })
     importResults.value=result.results || []
