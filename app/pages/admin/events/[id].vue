@@ -125,6 +125,16 @@ const load = async () => {
   loading.value = false
 }
 
+const getAccessToken = async () => {
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session?.access_token) {
+    throw new Error('Authentication required. Please sign out and back in.')
+  }
+
+  return session.access_token
+}
+
 const addSelected = async () => {
   if (!selected.value.length) return
 
@@ -139,17 +149,32 @@ const addSelected = async () => {
     lane: maxLane + index + 1,
   }))
 
-  const { error } = await supabase.from('event_participants').insert(inserts)
+  try {
+    const accessToken = await getAccessToken()
 
-  if (error) {
-    errorMessage.value = error.message
-  } else {
+    await $fetch('/api/admin/events/participants', {
+      method: 'POST',
+      body: {
+        action: 'add',
+        event_id: eventId.value,
+        participants: inserts,
+        access_token: accessToken,
+      },
+    })
+
     message.value = `Added ${inserts.length} student${inserts.length === 1 ? '' : 's'} to the event.`
     selected.value = []
     await load()
+  } catch (error: any) {
+    console.error('ADD EVENT PARTICIPANTS ERROR:', error)
+    errorMessage.value =
+      error?.data?.statusMessage ||
+      error?.data?.message ||
+      error?.message ||
+      'Could not assign students to this event.'
+  } finally {
+    saving.value = false
   }
-
-  saving.value = false
 }
 
 const removeParticipant = async (participant: any) => {
@@ -160,12 +185,28 @@ const removeParticipant = async (participant: any) => {
   if (!confirm(`Remove ${studentName} from this event?`)) return
 
   errorMessage.value = ''
-  const { error } = await supabase.from('event_participants').delete().eq('id', participant.id)
 
-  if (error) {
-    errorMessage.value = error.message
-  } else {
+  try {
+    const accessToken = await getAccessToken()
+
+    await $fetch('/api/admin/events/participants', {
+      method: 'POST',
+      body: {
+        action: 'remove',
+        participant_id: participant.id,
+        event_id: eventId.value,
+        access_token: accessToken,
+      },
+    })
+
     await load()
+  } catch (error: any) {
+    console.error('REMOVE EVENT PARTICIPANT ERROR:', error)
+    errorMessage.value =
+      error?.data?.statusMessage ||
+      error?.data?.message ||
+      error?.message ||
+      'Could not remove this student from the event.'
   }
 }
 
@@ -173,16 +214,30 @@ const saveParticipant = async (participant: any) => {
   errorMessage.value = ''
   message.value = ''
 
-  const { error } = await supabase
-    .from('event_participants')
-    .update({
-      lane: participant.lane || null,
-      bib_number: participant.bib_number || null,
-    })
-    .eq('id', participant.id)
+  try {
+    const accessToken = await getAccessToken()
 
-  if (error) errorMessage.value = error.message
-  else message.value = 'Event assignment updated.'
+    await $fetch('/api/admin/events/participants', {
+      method: 'POST',
+      body: {
+        action: 'update',
+        participant_id: participant.id,
+        event_id: eventId.value,
+        lane: participant.lane || null,
+        bib_number: participant.bib_number || null,
+        access_token: accessToken,
+      },
+    })
+
+    message.value = 'Event assignment updated.'
+  } catch (error: any) {
+    console.error('UPDATE EVENT PARTICIPANT ERROR:', error)
+    errorMessage.value =
+      error?.data?.statusMessage ||
+      error?.data?.message ||
+      error?.message ||
+      'Could not update this event assignment.'
+  }
 }
 
 const selectAllVisible = () => {
