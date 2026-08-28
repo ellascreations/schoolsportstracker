@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
 
   const rows = Array.isArray(body?.rows) ? body.rows : []
   if (!rows.length) throw createError({ statusCode: 400, statusMessage: 'No student rows supplied.' })
-  if (rows.length > 1000) throw createError({ statusCode: 400, statusMessage: 'Maximum 1000 students per import.' })
+  if (rows.length > 2000) throw createError({ statusCode: 400, statusMessage: 'Maximum 1000 students per import.' })
 
   const { data: houses } = await admin.from('houses').select('id,name')
   const houseMap = new Map((houses || []).map((h: any) => [String(h.name).trim().toLowerCase(), h.id]))
