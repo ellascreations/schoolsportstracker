@@ -110,7 +110,7 @@ const addSelected = async () => {
   try {
     const accessToken = await getAccessToken()
 
-    await $fetch('/api/admin/events/participants', {
+    const result: any = await $fetch('/api/admin/events/participants', {
       method: 'POST',
       body: {
         action: 'add',
@@ -120,8 +120,20 @@ const addSelected = async () => {
       },
     })
 
-    message.value = `Added ${inserts.length} student${inserts.length === 1 ? '' : 's'} to the event.`
+    if (!result?.added && !result?.skipped) {
+      throw new Error('The server did not confirm any student assignments.')
+    }
+
+    message.value = result.message ||
+      `Added ${result.added || 0} student${Number(result.added || 0) === 1 ? '' : 's'} to the event.`
+
+    if (Array.isArray(result.failed) && result.failed.length) {
+      errorMessage.value = `${result.failed.length} student assignment(s) failed: ${result.failed.map((item: any) => item.error).join(' | ')}`
+    }
+
     selected.value = []
+
+    // Reload from the server immediately so Assigned Students reflects the database.
     await load()
   } catch (error: any) {
     console.error('ADD EVENT PARTICIPANTS ERROR:', error)
