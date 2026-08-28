@@ -1,47 +1,71 @@
 <script setup lang="ts">
 const supabase = useSupabaseClient()
+const user = useSupabaseUser()
 
+const profile = ref<any>(null)
 const isAdmin = ref(false)
 const isTeacher = ref(false)
 
 const checkRole = async () => {
   const {
-    data: { user },
+    data: { user: authUser },
   } = await supabase.auth.getUser()
 
-  if (!user) {
+  if (!authUser) {
+    profile.value = null
     isAdmin.value = false
     isTeacher.value = false
     return
   }
 
-  const { data: profile, error } = await supabase
+  const { data, error } = await supabase
     .from('profiles')
-    .select('role, active')
-    .eq('id', user.id)
+    .select('id, email, first_name, last_name, role, active')
+    .eq('id', authUser.id)
     .single()
 
-  if (error || !profile?.active) {
+  if (error) {
     console.error('HEADER ROLE CHECK ERROR:', error)
+
+    profile.value = null
     isAdmin.value = false
     isTeacher.value = false
     return
   }
 
-  isAdmin.value = profile.role === 'admin'
+  profile.value = data
+
+  if (!data?.active) {
+    isAdmin.value = false
+    isTeacher.value = false
+    return
+  }
+
+  isAdmin.value = data.role === 'admin'
+
   isTeacher.value =
-    profile.role === 'admin' ||
-    profile.role === 'teacher'
+    data.role === 'admin' ||
+    data.role === 'teacher'
 }
 
-onMounted(() => {
-  checkRole()
+const logout = async () => {
+  await supabase.auth.signOut()
+
+  profile.value = null
+  isAdmin.value = false
+  isTeacher.value = false
+
+  await navigateTo('/login')
+}
+
+onMounted(async () => {
+  await checkRole()
 })
 
 const {
   data: { subscription },
-} = supabase.auth.onAuthStateChange(() => {
-  checkRole()
+} = supabase.auth.onAuthStateChange(async () => {
+  await checkRole()
 })
 
 onUnmounted(() => {
@@ -51,42 +75,88 @@ onUnmounted(() => {
 
 <template>
   <div class="min-h-screen bg-slate-50 text-slate-900">
-    <header v-if="user" class="border-b bg-white">
-      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-        <NuxtLink to="/dashboard" class="text-xl font-bold text-blue-700">School Sports Tracker</NuxtLink>
+    <header
+      v-if="user"
+      class="border-b bg-white"
+    >
+      <div
+        class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4"
+      >
+        <!-- Logo / Title -->
+        <NuxtLink
+          to="/dashboard"
+          class="text-xl font-bold text-blue-700"
+        >
+          School Sports Tracker
+        </NuxtLink>
+
+        <!-- Main Navigation -->
         <nav class="flex items-center gap-4">
-  <NuxtLink to="/dashboard">
-    Dashboard
-  </NuxtLink>
+          <NuxtLink
+            to="/dashboard"
+            class="text-sm font-semibold text-slate-600 hover:text-blue-600"
+          >
+            Dashboard
+          </NuxtLink>
 
-  <NuxtLink to="/events">
-    Events
-  </NuxtLink>
+          <NuxtLink
+            to="/events"
+            class="text-sm font-semibold text-slate-600 hover:text-blue-600"
+          >
+            Events
+          </NuxtLink>
 
-  <NuxtLink to="/leaderboard">
-    Leaderboard
-  </NuxtLink>
+          <NuxtLink
+            to="/leaderboard"
+            class="text-sm font-semibold text-slate-600 hover:text-blue-600"
+          >
+            Leaderboard
+          </NuxtLink>
 
-  <NuxtLink
-    v-if="isTeacher"
-    to="/teacher"
-  >
-    Teacher
-  </NuxtLink>
+          <NuxtLink
+            v-if="isTeacher"
+            to="/teacher"
+            class="text-sm font-semibold text-slate-600 hover:text-blue-600"
+          >
+            Teacher
+          </NuxtLink>
 
-  <NuxtLink
-    v-if="isAdmin"
-    to="/admin"
-  >
-    Admin
-  </NuxtLink>
-</nav>
+          <NuxtLink
+            v-if="isAdmin"
+            to="/admin"
+            class="text-sm font-semibold text-blue-700 hover:text-blue-800"
+          >
+            Admin
+          </NuxtLink>
+        </nav>
+
+        <!-- Account -->
         <div class="flex items-center gap-3">
-          <span class="hidden text-sm text-slate-500 sm:block">{{ profile?.first_name }} {{ profile?.last_name }}</span>
-          <button class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white" @click="logout">Sign out</button>
+          <div class="hidden text-right sm:block">
+            <div class="text-sm font-semibold text-slate-700">
+              {{ profile?.first_name }}
+              {{ profile?.last_name }}
+            </div>
+
+            <div
+              v-if="profile?.role"
+              class="text-xs capitalize text-slate-400"
+            >
+              {{ profile.role }}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+            @click="logout"
+          >
+            Sign out
+          </button>
         </div>
       </div>
     </header>
+
     <slot />
   </div>
 </template>
