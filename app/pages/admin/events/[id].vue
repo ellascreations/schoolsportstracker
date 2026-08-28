@@ -40,7 +40,6 @@ const availableStudents = computed(() => {
 const load = async () => {
   loading.value = true
   errorMessage.value = ''
-  message.value = ''
 
   if (!Number.isFinite(eventId.value) || eventId.value <= 0) {
     errorMessage.value = 'Invalid event ID.'
@@ -48,81 +47,40 @@ const load = async () => {
     return
   }
 
-  const eventResult = await supabase
-    .from('events')
-    .select('id,name,sport_id,year_level,gender,event_date,start_time,location,teacher_id,status')
-    .eq('id', eventId.value)
-    .single()
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
 
-  if (eventResult.error || !eventResult.data) {
-    errorMessage.value = eventResult.error?.message || 'Event not found.'
+    if (!session?.access_token) {
+      throw new Error('Authentication required. Please sign out and back in.')
+    }
+
+    const result: any = await $fetch('/api/admin/events/participants', {
+      method: 'POST',
+      body: {
+        action: 'load',
+        event_id: eventId.value,
+        access_token: session.access_token,
+      },
+    })
+
+    event.value = result.event || null
+    students.value = result.students || []
+    participants.value = result.participants || []
+    houses.value = result.houses || []
+  } catch (error: any) {
+    console.error('LOAD ASSIGN STUDENTS ERROR:', error)
+    event.value = null
+    students.value = []
+    participants.value = []
+    houses.value = []
+    errorMessage.value =
+      error?.data?.statusMessage ||
+      error?.data?.message ||
+      error?.message ||
+      'Could not load Assign Students.'
+  } finally {
     loading.value = false
-    return
   }
-
-  const currentEvent: any = eventResult.data
-
-  const [sportResult, teacherResult, studentsResult, participantsResult, housesResult] = await Promise.all([
-    currentEvent.sport_id
-      ? supabase.from('sports').select('id,name,measurement_type').eq('id', currentEvent.sport_id).maybeSingle()
-      : Promise.resolve({ data: null, error: null } as any),
-    currentEvent.teacher_id
-      ? supabase.from('profiles').select('id,first_name,last_name').eq('id', currentEvent.teacher_id).maybeSingle()
-      : Promise.resolve({ data: null, error: null } as any),
-    supabase
-      .from('profiles')
-      .select('id,first_name,last_name,student_number,year_level,house_id')
-      .eq('role', 'student')
-      .eq('active', true)
-      .order('year_level', { ascending: true })
-      .order('last_name', { ascending: true })
-      .order('first_name', { ascending: true }),
-    supabase
-      .from('event_participants')
-      .select('id,event_id,student_id,lane,bib_number')
-      .eq('event_id', eventId.value)
-      .order('lane', { ascending: true, nullsFirst: false }),
-    supabase.from('houses').select('id,name,colour').eq('active', true).order('name'),
-  ])
-
-  const firstError =
-    sportResult.error ||
-    teacherResult.error ||
-    studentsResult.error ||
-    participantsResult.error ||
-    housesResult.error
-
-  if (firstError) {
-    errorMessage.value = firstError.message || 'Could not load event assignment data.'
-    loading.value = false
-    return
-  }
-
-  const houseMap = new Map((housesResult.data || []).map((house: any) => [String(house.id), house]))
-  const studentMap = new Map(
-    (studentsResult.data || []).map((student: any) => [
-      student.id,
-      { ...student, house: student.house_id ? houseMap.get(String(student.house_id)) || null : null },
-    ])
-  )
-
-  event.value = {
-    ...currentEvent,
-    sport: sportResult.data || null,
-    teacher: teacherResult.data || null,
-  }
-
-  students.value = Array.from(studentMap.values()).filter(
-    (student: any) => !currentEvent.year_level || Number(student.year_level) === Number(currentEvent.year_level)
-  )
-
-  participants.value = (participantsResult.data || []).map((participant: any) => ({
-    ...participant,
-    student: studentMap.get(participant.student_id) || null,
-  }))
-
-  houses.value = housesResult.data || []
-  loading.value = false
 }
 
 const getAccessToken = async () => {

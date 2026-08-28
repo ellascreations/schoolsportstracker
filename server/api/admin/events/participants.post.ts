@@ -28,6 +28,82 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Event not found.' })
   }
 
+
+  if (action === 'load') {
+    const { data: currentEvent, error: eventLoadError } = await admin
+      .from('events')
+      .select('id,name,sport_id,year_level,gender,event_date,start_time,location,teacher_id,status')
+      .eq('id', eventId)
+      .single()
+
+    if (eventLoadError || !currentEvent) {
+      throw createError({ statusCode: 404, statusMessage: eventLoadError?.message || 'Event not found.' })
+    }
+
+    const [sportResult, teacherResult, studentsResult, participantsResult, housesResult] = await Promise.all([
+      currentEvent.sport_id
+        ? admin.from('sports').select('id,name,measurement_type').eq('id', currentEvent.sport_id).maybeSingle()
+        : Promise.resolve({ data: null, error: null } as any),
+      currentEvent.teacher_id
+        ? admin.from('profiles').select('id,first_name,last_name').eq('id', currentEvent.teacher_id).maybeSingle()
+        : Promise.resolve({ data: null, error: null } as any),
+      admin
+        .from('profiles')
+        .select('id,first_name,last_name,student_number,year_level,house_id')
+        .eq('role', 'student')
+        .eq('active', true)
+        .order('year_level', { ascending: true })
+        .order('last_name', { ascending: true })
+        .order('first_name', { ascending: true }),
+      admin
+        .from('event_participants')
+        .select('id,event_id,student_id,lane,bib_number')
+        .eq('event_id', eventId)
+        .order('lane', { ascending: true, nullsFirst: false }),
+      admin.from('houses').select('id,name,colour').eq('active', true).order('name'),
+    ])
+
+    const firstError =
+      sportResult.error ||
+      teacherResult.error ||
+      studentsResult.error ||
+      participantsResult.error ||
+      housesResult.error
+
+    if (firstError) {
+      throw createError({ statusCode: 400, statusMessage: firstError.message || 'Could not load assignment data.' })
+    }
+
+    const houses = housesResult.data || []
+    const houseMap = new Map(houses.map((house: any) => [String(house.id), house]))
+    const studentMap = new Map(
+      (studentsResult.data || []).map((student: any) => [
+        student.id,
+        { ...student, house: student.house_id ? houseMap.get(String(student.house_id)) || null : null },
+      ])
+    )
+
+    const students = Array.from(studentMap.values()).filter(
+      (student: any) => !currentEvent.year_level || Number(student.year_level) === Number(currentEvent.year_level)
+    )
+
+    const participants = (participantsResult.data || []).map((participant: any) => ({
+      ...participant,
+      student: studentMap.get(participant.student_id) || null,
+    }))
+
+    return {
+      event: {
+        ...currentEvent,
+        sport: sportResult.data || null,
+        teacher: teacherResult.data || null,
+      },
+      students,
+      participants,
+      houses,
+    }
+  }
+
   if (action === 'add') {
     const participants = Array.isArray(body?.participants) ? body.participants : []
 
