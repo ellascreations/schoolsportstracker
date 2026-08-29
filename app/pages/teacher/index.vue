@@ -144,7 +144,7 @@ onMounted(loadTeacherPage)
       </div>
 
       <NuxtLink
-        v-if="profile?.role === 'admin'"
+        v-if="['admin','super_admin'].includes(profile?.role)"
         to="/admin/events"
         class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
       >
@@ -204,7 +204,7 @@ onMounted(loadTeacherPage)
         class="mt-1 text-sm text-slate-500"
       >
         {{
-          profile?.role === 'admin'
+          ['admin','super_admin'].includes(profile?.role)
             ? 'No sporting events have been created yet.'
             : 'There are currently no events assigned to you or waiting for a teacher.'
         }}

@@ -2,7 +2,7 @@ import { requireAdmin } from '../../../utils/requireAdmin'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<any>(event)
-  const { admin } = await requireAdmin(event, body?.access_token)
+  const { admin, profile } = await requireAdmin(event, body?.access_token)
 
   const email = String(body.email || '').trim().toLowerCase()
   const firstName = String(body.first_name || '').trim()
@@ -13,21 +13,21 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'First name, last name and email are required.' })
   }
 
-  const { data: existing } = await admin.from('profiles').select('id,email,role').eq('email', email).maybeSingle()
+  const { data: existing } = await admin.from('profiles').select('id,email,role').eq('email', email).eq('school_id', profile.school_id).maybeSingle()
   if (existing) {
     throw createError({ statusCode: 409, statusMessage: `An account already exists for ${email}. Use Users & Roles to change the existing account to Teacher.` })
   }
 
   const { data: created, error } = await admin.auth.admin.createUser({
     email, password, email_confirm: true,
-    user_metadata: { first_name: firstName, last_name: lastName, role: 'teacher' },
+    user_metadata: { first_name: firstName, last_name: lastName, role: 'teacher', school_id: profile.school_id },
   })
   if (error || !created.user) {
     throw createError({ statusCode: 400, statusMessage: error?.message || 'Could not create teacher.' })
   }
 
   const { error: profileError } = await admin.from('profiles').update({
-    first_name: firstName, last_name: lastName, role: 'teacher', active: true,
+    first_name: firstName, last_name: lastName, school_id: profile.school_id, role: 'teacher', active: true,
     updated_at: new Date().toISOString(),
   }).eq('id', created.user.id)
 

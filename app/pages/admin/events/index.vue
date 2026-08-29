@@ -5,6 +5,8 @@ const supabase = useSupabaseClient()
 const events = ref<any[]>([])
 const sports = ref<any[]>([])
 const teachers = ref<any[]>([])
+const carnivals = ref<any[]>([])
+const profile = ref<any>(null)
 const loading = ref(false)
 const saving = ref(false)
 const errorMessage = ref('')
@@ -20,50 +22,83 @@ const form = reactive({
   location: '',
   teacher_id: null as string | null,
   status: 'scheduled',
+  carnival_id: null as number | null,
 })
 
 const load = async () => {
   loading.value = true
   errorMessage.value = ''
 
-  const [eventsResult, sportsResult, teachersResult] = await Promise.all([
-    supabase
-      .from('events')
-      .select('id,name,sport_id,year_level,gender,event_date,start_time,location,teacher_id,status')
-      .order('event_date', { ascending: true })
-      .order('start_time', { ascending: true }),
-    supabase
-      .from('sports')
-      .select('id,name')
-      .eq('active', true)
-      .order('name'),
-    supabase
-      .from('profiles')
-      .select('id,first_name,last_name')
-      .eq('role', 'teacher')
-      .eq('active', true)
-      .order('last_name')
-      .order('first_name'),
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    errorMessage.value = 'Authentication required.'
+    loading.value = false
+    return
+  }
+
+  const { data: p, error: profileError } = await supabase
+    .from('profiles')
+    .select('id,role,school_id')
+    .eq('id', user.id)
+    .single()
+
+  if (profileError) {
+    errorMessage.value = profileError.message
+    loading.value = false
+    return
+  }
+  profile.value = p
+
+  let eventsQuery = supabase
+    .from('events')
+    .select('id,name,sport_id,year_level,gender,event_date,start_time,location,teacher_id,status,carnival_id,school_id')
+    .order('event_date', { ascending: true })
+    .order('start_time', { ascending: true })
+
+  let teacherQuery = supabase
+    .from('profiles')
+    .select('id,first_name,last_name,school_id')
+    .eq('role', 'teacher')
+    .eq('active', true)
+    .order('last_name')
+    .order('first_name')
+
+  let carnivalQuery = supabase
+    .from('carnivals')
+    .select('id,name,host_school_id,status')
+    .order('start_date', { ascending: false })
+
+  if (p.role !== 'super_admin' && p.school_id) {
+    eventsQuery = eventsQuery.eq('school_id', p.school_id)
+    teacherQuery = teacherQuery.eq('school_id', p.school_id)
+    carnivalQuery = carnivalQuery.eq('host_school_id', p.school_id)
+  }
+
+  const [eventsResult, sportsResult, teachersResult, carnivalsResult] = await Promise.all([
+    eventsQuery,
+    supabase.from('sports').select('id,name').eq('active', true).order('name'),
+    teacherQuery,
+    carnivalQuery,
   ])
 
-  if (eventsResult.error || sportsResult.error || teachersResult.error) {
+  if (eventsResult.error || sportsResult.error || teachersResult.error || carnivalsResult.error) {
     errorMessage.value =
-      eventsResult.error?.message ||
-      sportsResult.error?.message ||
-      teachersResult.error?.message ||
-      'Could not load events.'
+      eventsResult.error?.message || sportsResult.error?.message || teachersResult.error?.message || carnivalsResult.error?.message || 'Could not load events.'
   }
 
   sports.value = sportsResult.data || []
   teachers.value = teachersResult.data || []
+  carnivals.value = carnivalsResult.data || []
 
   const sportMap = new Map(sports.value.map((sport: any) => [sport.id, sport]))
   const teacherMap = new Map(teachers.value.map((teacher: any) => [teacher.id, teacher]))
+  const carnivalMap = new Map(carnivals.value.map((carnival: any) => [carnival.id, carnival]))
 
   events.value = (eventsResult.data || []).map((event: any) => ({
     ...event,
     sport: sportMap.get(event.sport_id) || null,
     teacher: teacherMap.get(event.teacher_id) || null,
+    carnival: carnivalMap.get(event.carnival_id) || null,
   }))
 
   loading.value = false
@@ -81,6 +116,8 @@ const add = async () => {
     year_level: form.year_level || null,
     start_time: form.start_time || null,
     location: form.location.trim() || null,
+    carnival_id: form.carnival_id || null,
+    school_id: profile.value?.school_id || null,
   }
 
   const { error } = await supabase.from('events').insert(payload)
@@ -99,6 +136,7 @@ const add = async () => {
       location: '',
       teacher_id: null,
       status: 'scheduled',
+      carnival_id: null,
     })
     await load()
   }
@@ -147,6 +185,11 @@ onMounted(load)
       <input v-model="form.event_date" type="date" required class="rounded-lg border px-4 py-2" />
       <input v-model="form.start_time" type="time" class="rounded-lg border px-4 py-2" />
 
+      <select v-model.number="form.carnival_id" class="rounded-lg border px-4 py-2">
+        <option :value="null">No carnival / legacy event</option>
+        <option v-for="carnival in carnivals" :key="carnival.id" :value="carnival.id">{{ carnival.name }}</option>
+      </select>
+
       <select v-model="form.teacher_id" class="rounded-lg border px-4 py-2">
         <option :value="null">No teacher assigned</option>
         <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
@@ -170,6 +213,7 @@ onMounted(load)
             {{ event.event_date }}
             <span v-if="event.start_time"> · {{ event.start_time }}</span>
             · {{ event.sport?.name || 'No sport' }}
+            <span v-if="event.carnival"> · {{ event.carnival.name }}</span>
             <span v-if="event.year_level"> · Year {{ event.year_level }}</span>
           </div>
           <div v-if="event.teacher" class="mt-1 text-xs text-slate-500">

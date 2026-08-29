@@ -4,6 +4,7 @@ const user = useSupabaseUser()
 
 const profile = ref<any>(null)
 const isAdmin = ref(false)
+const isSuperAdmin = ref(false)
 const isTeacher = ref(false)
 
 const checkRole = async () => {
@@ -14,13 +15,14 @@ const checkRole = async () => {
   if (!authUser) {
     profile.value = null
     isAdmin.value = false
+    isSuperAdmin.value = false
     isTeacher.value = false
     return
   }
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, email, first_name, last_name, role, active')
+    .select('id, email, first_name, last_name, role, active, school_id, school:schools(name,short_name)')
     .eq('id', authUser.id)
     .single()
 
@@ -28,6 +30,7 @@ const checkRole = async () => {
     console.error('HEADER ROLE CHECK ERROR:', error)
     profile.value = null
     isAdmin.value = false
+    isSuperAdmin.value = false
     isTeacher.value = false
     return
   }
@@ -36,18 +39,21 @@ const checkRole = async () => {
 
   if (!data?.active) {
     isAdmin.value = false
+    isSuperAdmin.value = false
     isTeacher.value = false
     return
   }
 
-  isAdmin.value = data.role === 'admin'
-  isTeacher.value = data.role === 'admin' || data.role === 'teacher'
+  isSuperAdmin.value = data.role === 'super_admin'
+  isAdmin.value = data.role === 'admin' || data.role === 'super_admin'
+  isTeacher.value = data.role === 'admin' || data.role === 'super_admin' || data.role === 'teacher'
 }
 
 const logout = async () => {
   await supabase.auth.signOut()
   profile.value = null
   isAdmin.value = false
+  isSuperAdmin.value = false
   isTeacher.value = false
   await navigateTo('/login')
 }
@@ -93,8 +99,11 @@ onUnmounted(() => {
             <div class="text-sm font-semibold text-slate-700">
               {{ profile?.first_name }} {{ profile?.last_name }}
             </div>
+            <div v-if="profile?.school" class="text-xs text-slate-400">
+              {{ profile.school.short_name || profile.school.name }}
+            </div>
             <div v-if="profile?.role" class="text-xs capitalize text-slate-400">
-              {{ profile.role }}
+              {{ String(profile.role).replaceAll('_', ' ') }}
             </div>
           </div>
           <button

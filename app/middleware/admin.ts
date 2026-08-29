@@ -20,7 +20,7 @@ export default defineNuxtRouteMiddleware(async () => {
     return navigateTo('/dashboard')
   }
 
-  if (!profile?.active || profile.role !== 'admin') {
+  if (!profile?.active || !['admin', 'super_admin'].includes(String(profile.role))) {
     return navigateTo('/dashboard')
   }
 })

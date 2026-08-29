@@ -58,7 +58,7 @@ export async function requireAdmin(event: any, bodyAccessToken?: string) {
 
   const { data: profile, error: profileError } = await admin
     .from('profiles')
-    .select('id,email,role,active')
+    .select('id,email,role,active,school_id')
     .eq('id', authUser.id)
     .single()
 
@@ -74,7 +74,7 @@ export async function requireAdmin(event: any, bodyAccessToken?: string) {
     })
   }
 
-  if (!profile?.active || profile.role !== 'admin') {
+  if (!profile?.active || !['admin', 'super_admin'].includes(String(profile.role))) {
     console.error('ADMIN ACCESS DENIED:', {
       authSource,
       userId: authUser.id,

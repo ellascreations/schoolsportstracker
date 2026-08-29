@@ -2,7 +2,7 @@ import { requireAdmin } from '../../../utils/requireAdmin'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<any>(event)
-  const { admin } = await requireAdmin(event, body?.access_token)
+  const { admin, profile } = await requireAdmin(event, body?.access_token)
 
   const action = String(body?.action || '').trim()
   const eventId = Number(body?.event_id)
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
   const { data: existingEvent, error: eventError } = await admin
     .from('events')
-    .select('id')
+    .select('id,school_id,carnival_id')
     .eq('id', eventId)
     .maybeSingle()
 
@@ -25,10 +25,26 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Event not found.' })
   }
 
+  let canAccessEvent = profile.role === 'super_admin' || Number(existingEvent.school_id) === Number(profile.school_id)
+  if (!canAccessEvent && existingEvent.carnival_id) {
+    const { data: membership } = await admin
+      .from('carnival_schools')
+      .select('id')
+      .eq('carnival_id', existingEvent.carnival_id)
+      .eq('school_id', profile.school_id)
+      .neq('status', 'declined')
+      .maybeSingle()
+    canAccessEvent = Boolean(membership)
+  }
+
+  if (!canAccessEvent) {
+    throw createError({ statusCode: 403, statusMessage: 'This event is not available to your school.' })
+  }
+
   if (action === 'load') {
     const { data: currentEvent, error: eventLoadError } = await admin
       .from('events')
-      .select('id,name,sport_id,year_level,gender,event_date,start_time,location,teacher_id,status')
+      .select('id,name,sport_id,year_level,gender,event_date,start_time,location,teacher_id,status,school_id,carnival_id')
       .eq('id', eventId)
       .single()
 
@@ -43,21 +59,25 @@ export default defineEventHandler(async (event) => {
       currentEvent.teacher_id
         ? admin.from('profiles').select('id,first_name,last_name').eq('id', currentEvent.teacher_id).maybeSingle()
         : Promise.resolve({ data: null, error: null } as any),
-      admin
-        .from('profiles')
-        .select('id,first_name,last_name,student_number,year_level,house_id')
-        .eq('role', 'student')
-        .eq('active', true)
-        .order('year_level', { ascending: true })
-        .order('last_name', { ascending: true })
-        .order('first_name', { ascending: true }),
+      (() => {
+        let q = admin
+          .from('profiles')
+          .select('id,first_name,last_name,student_number,year_level,house_id,school_id,school:schools(name,short_name)')
+          .eq('role', 'student')
+          .eq('active', true)
+          .order('year_level', { ascending: true })
+          .order('last_name', { ascending: true })
+          .order('first_name', { ascending: true })
+        if (profile.role !== 'super_admin') q = q.eq('school_id', profile.school_id)
+        return q
+      })(),
       admin
         .from('event_participants')
         .select('id,event_id,student_id,lane,bib_number,created_at')
         .eq('event_id', eventId)
         .order('lane', { ascending: true, nullsFirst: false })
         .order('id', { ascending: true }),
-      admin.from('houses').select('id,name,colour').eq('active', true).order('name'),
+      (() => { let q = admin.from('houses').select('id,name,colour,school_id').eq('active', true).order('name'); if (profile.role !== 'super_admin') q = q.eq('school_id', profile.school_id); return q })(),
     ])
 
     const firstError =
@@ -115,7 +135,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'Maximum 200 students can be assigned at once.' })
     }
 
-    const studentIds = [...new Set(
+    const studentIds: string[] = [...new Set<string>(
       requested
         .map((participant: any) => String(participant?.student_id || '').trim())
         .filter(Boolean)
@@ -125,12 +145,18 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, statusMessage: 'No valid students were selected.' })
     }
 
-    const { data: validStudents, error: studentError } = await admin
+    let validStudentsQuery = admin
       .from('profiles')
-      .select('id')
+      .select('id,school_id')
       .in('id', studentIds)
       .eq('role', 'student')
       .eq('active', true)
+
+    if (profile.role !== 'super_admin') {
+      validStudentsQuery = validStudentsQuery.eq('school_id', profile.school_id)
+    }
+
+    const { data: validStudents, error: studentError } = await validStudentsQuery
 
     if (studentError) {
       throw createError({ statusCode: 400, statusMessage: studentError.message })

@@ -1,4 +1,3 @@
-```vue
 <script setup lang="ts">
 definePageMeta({
   middleware: ['admin'],
@@ -1117,4 +1116,3 @@ onMounted(async () => {
     </section>
   </main>
 </template>
-```

@@ -17,7 +17,7 @@ const allowedGenders = new Set([
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<any>(event)
-  const { admin } = await requireAdmin(event, body?.access_token)
+  const { admin, profile } = await requireAdmin(event, body?.access_token)
 
   const action = String(body?.action || '').trim().toLowerCase()
   const eventId = Number(body?.event_id)
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
 
   const { data: existingEvent, error: lookupError } = await admin
     .from('events')
-    .select('id,name')
+    .select('id,name,school_id,carnival_id')
     .eq('id', eventId)
     .maybeSingle()
 
@@ -46,6 +46,13 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 404,
       statusMessage: 'Event not found.',
+    })
+  }
+
+  if (profile.role !== 'super_admin' && Number(existingEvent.school_id) !== Number(profile.school_id)) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'You can only edit or delete events hosted by your school.',
     })
   }
 

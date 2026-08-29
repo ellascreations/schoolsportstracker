@@ -9,7 +9,7 @@ type TeacherImportRow = {
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<{ rows?: TeacherImportRow[]; access_token?: string }>(event)
-  const { admin } = await requireAdmin(event, body?.access_token)
+  const { admin, profile } = await requireAdmin(event, body?.access_token)
 
   const rows = Array.isArray(body?.rows) ? body.rows : []
 
@@ -44,6 +44,7 @@ export default defineEventHandler(async (event) => {
       .from('profiles')
       .select('id,email,role,active')
       .eq('email', email)
+      .eq('school_id', profile.school_id)
       .maybeSingle()
 
     if (existingError) {
@@ -67,6 +68,7 @@ export default defineEventHandler(async (event) => {
         .update({
           first_name: firstName,
           last_name: lastName,
+          school_id: profile.school_id,
           active: true,
           updated_at: new Date().toISOString(),
         })
@@ -90,6 +92,7 @@ export default defineEventHandler(async (event) => {
         first_name: firstName,
         last_name: lastName,
         role: 'teacher',
+        school_id: profile.school_id,
       },
     })
 
@@ -108,6 +111,7 @@ export default defineEventHandler(async (event) => {
       .update({
         first_name: firstName,
         last_name: lastName,
+        school_id: profile.school_id,
         role: 'teacher',
         active: true,
         updated_at: new Date().toISOString(),

@@ -235,7 +235,7 @@ const load = async () => {
     // Load the event first so the page can always render the event header.
     const { data: eventRow, error: eventError } = await supabase
       .from('events')
-      .select('id,name,sport_id,year_level,gender,event_date,start_time,location,teacher_id,status')
+      .select('id,name,sport_id,year_level,gender,event_date,start_time,location,teacher_id,status,school_id,carnival_id')
       .eq('id', id)
       .single()
 

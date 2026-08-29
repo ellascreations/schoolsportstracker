@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'teacher' | 'student'
+export type UserRole = 'super_admin' | 'admin' | 'teacher' | 'student'
 export type EventStatus = 'scheduled' | 'open' | 'in_progress' | 'completed' | 'cancelled'
 export type MeasurementType = 'time' | 'distance' | 'height' | 'points' | 'position'
 
@@ -10,5 +10,6 @@ export interface Profile {
   role: UserRole
   year_level: number | null
   house_id: number | null
+  school_id: number | null
   active: boolean
 }

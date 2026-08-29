@@ -12,13 +12,13 @@ type ImportRow = {
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<{ rows?: ImportRow[]; access_token?: string }>(event)
-  const { admin } = await requireAdmin(event, body?.access_token)
+  const { admin, profile } = await requireAdmin(event, body?.access_token)
 
   const rows = Array.isArray(body?.rows) ? body.rows : []
   if (!rows.length) throw createError({ statusCode: 400, statusMessage: 'No student rows supplied.' })
   if (rows.length > 2000) throw createError({ statusCode: 400, statusMessage: 'Maximum 1000 students per import.' })
 
-  const { data: houses } = await admin.from('houses').select('id,name')
+  const { data: houses } = await admin.from('houses').select('id,name').eq('school_id', profile.school_id)
   const houseMap = new Map((houses || []).map((h: any) => [String(h.name).trim().toLowerCase(), h.id]))
 
   const results: any[] = []
@@ -48,10 +48,10 @@ export default defineEventHandler(async (event) => {
     }
 
     let existingProfile: any = null
-    const { data: emailMatch } = await admin.from('profiles').select('id,email,student_number').eq('email', email).maybeSingle()
+    const { data: emailMatch } = await admin.from('profiles').select('id,email,student_number').eq('email', email).eq('school_id', profile.school_id).maybeSingle()
     existingProfile = emailMatch
     if (!existingProfile && studentNumber) {
-      const { data: numberMatch } = await admin.from('profiles').select('id,email,student_number').eq('student_number', studentNumber).maybeSingle()
+      const { data: numberMatch } = await admin.from('profiles').select('id,email,student_number').eq('student_number', studentNumber).eq('school_id', profile.school_id).maybeSingle()
       existingProfile = numberMatch
     }
     if (existingProfile) {
@@ -61,6 +61,7 @@ export default defineEventHandler(async (event) => {
         student_number: studentNumber,
         year_level: yearLevel,
         house_id: houseId ?? null,
+        school_id: profile.school_id,
         role: 'student',
         active: true,
         updated_at: new Date().toISOString()
@@ -76,7 +77,7 @@ export default defineEventHandler(async (event) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { first_name: firstName, last_name: lastName, role: 'student' }
+      user_metadata: { first_name: firstName, last_name: lastName, role: 'student', school_id: profile.school_id }
     })
 
     if (createErrorResult || !created.user) {
@@ -90,6 +91,7 @@ export default defineEventHandler(async (event) => {
       student_number: studentNumber,
       year_level: yearLevel,
       house_id: houseId ?? null,
+      school_id: profile.school_id,
       role: 'student',
       active: true,
       updated_at: new Date().toISOString()
