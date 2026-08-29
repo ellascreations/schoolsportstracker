@@ -10,6 +10,21 @@ const loading = ref(false)
 const savingUserId = ref<string | null>(null)
 const errorMessage = ref('')
 const successMessage = ref('')
+const search = ref('')
+
+const filteredUsers = computed(() => {
+  const q = search.value.trim().toLowerCase()
+
+  if (!q) return users.value
+
+  return users.value.filter((user: any) => {
+    const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim().toLowerCase()
+    const email = String(user.email || '').toLowerCase()
+    const role = String(user.role || '').toLowerCase()
+
+    return fullName.includes(q) || email.includes(q) || role.includes(q)
+  })
+})
 
 const timeoutOptions = [
   { value: 5, label: '5 minutes' },
@@ -134,6 +149,36 @@ onMounted(load)
       {{ successMessage }}
     </div>
 
+    <section class="mb-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <label for="user-search" class="mb-2 block text-sm font-semibold text-slate-700">
+        Search users
+      </label>
+
+      <div class="relative">
+        <input
+          id="user-search"
+          v-model="search"
+          type="search"
+          placeholder="Search by name, email or role..."
+          autocomplete="off"
+          class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 pr-24 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        />
+
+        <button
+          v-if="search"
+          type="button"
+          class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+          @click="search = ''"
+        >
+          Clear
+        </button>
+      </div>
+
+      <p class="mt-2 text-xs text-slate-500">
+        Showing {{ filteredUsers.length }} of {{ users.length }} users
+      </p>
+    </section>
+
     <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div
         v-if="loading"
@@ -143,10 +188,10 @@ onMounted(load)
       </div>
 
       <div
-        v-else-if="!users.length"
+        v-else-if="!filteredUsers.length"
         class="p-8 text-center text-slate-500"
       >
-        No users found.
+        {{ search ? 'No users match your search.' : 'No users found.' }}
       </div>
 
       <div v-else class="overflow-x-auto">
@@ -173,7 +218,7 @@ onMounted(load)
 
           <tbody class="divide-y divide-slate-100">
             <tr
-              v-for="user in users"
+              v-for="user in filteredUsers"
               :key="user.id"
             >
               <td class="px-4 py-4">
