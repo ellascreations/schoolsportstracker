@@ -38,8 +38,11 @@ const login = async () => {
   <main class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 px-4">
     <div class="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
       <div class="mb-7 text-center">
-        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-3xl text-white">🏆</div>
-        <h1 class="text-3xl font-bold">School Sports Tracker</h1>
+        <img
+          src="/images/school-sports-tracker-logo.png"
+          alt="School Sports Tracker"
+          class="mx-auto mb-5 w-full max-w-[240px] object-contain drop-shadow-xl"
+        />
         <p class="mt-2 text-slate-500">Sign in to continue</p>
       </div>
       <div v-if="errorMessage" class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ errorMessage }}</div>

@@ -162,10 +162,16 @@ onUnmounted(() => {
       <header class="border-b border-white/10 bg-slate-900/80 px-7 py-5">
         <div class="flex items-center gap-5">
           <img
+            src="/images/school-sports-tracker-logo.png"
+            alt="School Sports Tracker"
+            class="h-20 w-20 rounded-2xl object-contain shadow-2xl"
+          />
+
+          <img
             v-if="data.carnival.host_school?.logo_url"
             :src="data.carnival.host_school.logo_url"
-            alt=""
-            class="h-16 w-16 rounded-xl bg-white object-contain p-1"
+            :alt="data.carnival.host_school?.name || 'Host school'"
+            class="hidden h-16 w-16 rounded-xl bg-white object-contain p-1 lg:block"
           />
 
           <div class="min-w-0 flex-1">

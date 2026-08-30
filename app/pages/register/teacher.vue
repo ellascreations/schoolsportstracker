@@ -31,7 +31,11 @@ onMounted(loadOptions)
   <main class="flex min-h-screen items-center justify-center bg-gradient-to-br from-emerald-50 to-slate-100 px-4 py-10">
     <div class="w-full max-w-xl rounded-2xl bg-white p-8 shadow-xl">
       <div class="mb-6 text-center">
-        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-600 text-3xl text-white">🏫</div>
+        <img
+          src="/images/school-sports-tracker-logo.png"
+          alt="School Sports Tracker"
+          class="mx-auto mb-5 w-full max-w-[220px] object-contain drop-shadow-xl"
+        />
         <h1 class="text-3xl font-bold">Teacher Registration</h1>
         <p class="mt-2 text-slate-500">Register using your school-issued email address.</p>
       </div>

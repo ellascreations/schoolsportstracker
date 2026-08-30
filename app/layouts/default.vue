@@ -77,11 +77,28 @@ onUnmounted(() => {
   <div class="min-h-screen bg-slate-50 text-slate-900">
     <header v-if="user" class="border-b bg-white">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-        <NuxtLink to="/dashboard" class="text-xl font-bold text-blue-700">
-          School Sports Tracker
+        <NuxtLink
+          to="/dashboard"
+          class="flex shrink-0 items-center gap-3"
+          aria-label="School Sports Tracker dashboard"
+        >
+          <img
+            src="/images/school-sports-tracker-logo.png"
+            alt="School Sports Tracker"
+            class="h-14 w-14 rounded-xl object-contain"
+          />
+
+          <div class="hidden lg:block">
+            <div class="text-lg font-black leading-tight text-slate-900">
+              School Sports
+            </div>
+            <div class="text-sm font-black uppercase tracking-[0.18em] text-emerald-600">
+              Tracker
+            </div>
+          </div>
         </NuxtLink>
 
-        <nav class="hidden items-center gap-5 md:flex">
+        <nav class="hidden items-center gap-4 md:flex">
           <NuxtLink to="/dashboard" class="hover:text-blue-700">Dashboard</NuxtLink>
           <NuxtLink to="/events" class="hover:text-blue-700">Events</NuxtLink>
           <NuxtLink to="/leaderboard" class="hover:text-blue-700">Leaderboard</NuxtLink>
