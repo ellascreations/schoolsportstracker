@@ -167,8 +167,8 @@ watch(selectedHouseId, async () => {
   <main class="mx-auto max-w-7xl px-4 py-8">
     <div class="mb-7">
       <p class="text-sm font-bold uppercase tracking-wider text-amber-600">Records</p>
-      <h1 class="mt-1 text-3xl font-bold text-slate-900">Top 5 All-Time Performances</h1>
-      <p class="mt-2 text-slate-500">School, house and interschool records with the date each performance was achieved.</p>
+      <h1 class="mt-1 text-3xl font-bold text-white">Top 5 All-Time Performances</h1>
+      <p class="mt-2 text-slate-400">School, house and interschool records with the date each performance was achieved.</p>
     </div>
 
     <div class="mb-6 flex flex-wrap gap-2">
@@ -178,13 +178,13 @@ watch(selectedHouseId, async () => {
         {value:'interschool',label:'Interschool Records'}
       ]" :key="item.value" type="button"
         class="rounded-lg px-4 py-2 text-sm font-semibold"
-        :class="scope===item.value ? 'bg-slate-900 text-white' : 'border bg-white text-slate-700 hover:bg-slate-50'"
+        :class="scope===item.value ? 'bg-slate-900 text-white' : 'border bg-slate-900 text-slate-200 hover:bg-slate-800'"
         @click="changeScope(item.value as any)">
         {{ item.label }}
       </button>
     </div>
 
-    <section class="mb-6 grid gap-4 rounded-xl border bg-white p-5 shadow-sm md:grid-cols-4">
+    <section class="mb-6 grid gap-4 rounded-xl border bg-slate-900 p-5 shadow-sm md:grid-cols-4">
       <label v-if="scope!=='interschool'">
         <span class="mb-1 block text-sm font-semibold">School</span>
         <select v-model.number="selectedSchoolId" :disabled="profile?.role!=='super_admin'" class="w-full rounded-lg border px-3 py-2 disabled:bg-slate-100">
@@ -215,15 +215,15 @@ watch(selectedHouseId, async () => {
     </section>
 
     <div v-if="errorMessage" class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{{ errorMessage }}</div>
-    <div v-if="loading" class="rounded-xl border bg-white p-10 text-center text-slate-500">Loading records...</div>
-    <div v-else-if="!grouped.length" class="rounded-xl border bg-white p-10 text-center text-slate-500">No record performances are available for this selection yet.</div>
+    <div v-if="loading" class="rounded-xl border bg-slate-900 p-10 text-center text-slate-400">Loading records...</div>
+    <div v-else-if="!grouped.length" class="rounded-xl border bg-slate-900 p-10 text-center text-slate-400">No record performances are available for this selection yet.</div>
 
     <div v-else class="space-y-5">
-      <section v-for="group in grouped" :key="group.key" class="overflow-hidden rounded-xl border bg-white shadow-sm">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b bg-slate-50 px-5 py-4">
+      <section v-for="group in grouped" :key="group.key" class="overflow-hidden rounded-xl border bg-slate-900 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b bg-slate-800 px-5 py-4">
           <div>
-            <div class="font-bold text-slate-900">{{ group.sport_name }}</div>
-            <div class="text-sm text-slate-500">
+            <div class="font-bold text-white">{{ group.sport_name }}</div>
+            <div class="text-sm text-slate-400">
               {{ group.year_level ? `Year ${group.year_level}` : 'Open' }} ·
               <span class="capitalize">{{ group.gender }}</span> · {{ group.sport_category }}
             </div>
@@ -233,7 +233,7 @@ watch(selectedHouseId, async () => {
 
         <div class="overflow-x-auto">
           <table class="sst-dark-table min-w-full text-left text-sm">
-            <thead class="bg-white text-slate-500"><tr>
+            <thead class="bg-slate-900 text-slate-400"><tr>
               <th class="px-5 py-3">Rank</th><th>Performance</th><th>Athlete</th><th>School</th><th>House</th><th>Date achieved</th>
             </tr></thead>
             <tbody class="divide-y">
@@ -242,7 +242,7 @@ watch(selectedHouseId, async () => {
                   <span v-if="row.record_rank===1">🏆</span>
                   #{{ row.record_rank }}
                 </td>
-                <td class="font-bold text-slate-900">{{ formatValue(row) }}</td>
+                <td class="font-bold text-white">{{ formatValue(row) }}</td>
                 <td>{{ row.holder_name }}</td>
                 <td>{{ row.holder_school_name || '—' }}</td>
                 <td>{{ row.holder_house_name || '—' }}</td>
