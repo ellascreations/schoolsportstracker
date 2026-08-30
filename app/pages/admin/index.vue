@@ -18,6 +18,7 @@ const items = computed(() => {
     ['Houses','Manage school houses and colours','/admin/houses','🏠'],
     ['Sports','Manage sports and measurement types','/admin/sports','🏃'],
     ['Events','Manage individual carnival events','/admin/events','📅'],
+    ['Records','Top 5 records and historical performances','/admin/records','🏅'],
     ['Users & Roles','Manage user access levels','/admin/users','🔐'],
     ['Schools','Manage school details and participating schools','/admin/schools','🏫'],
   ]

@@ -85,6 +85,7 @@ onUnmounted(() => {
           <NuxtLink to="/dashboard" class="hover:text-blue-700">Dashboard</NuxtLink>
           <NuxtLink to="/events" class="hover:text-blue-700">Events</NuxtLink>
           <NuxtLink to="/leaderboard" class="hover:text-blue-700">Leaderboard</NuxtLink>
+          <NuxtLink to="/records" class="hover:text-blue-700">Records</NuxtLink>
           <NuxtLink v-if="profile?.role === 'student'" to="/student" class="hover:text-blue-700">
             My Results
           </NuxtLink>
