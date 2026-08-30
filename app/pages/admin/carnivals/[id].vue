@@ -104,7 +104,20 @@ onMounted(load)
           <p class="mt-2 text-slate-500">{{ carnival.start_date }}<span v-if="carnival.end_date && carnival.end_date !== carnival.start_date"> – {{ carnival.end_date }}</span><span v-if="carnival.venue"> · {{ carnival.venue }}</span></p>
           <p class="mt-1 text-sm text-slate-500">Host: {{ carnival.host_school?.name }}</p>
         </div>
-        <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-bold capitalize">{{ String(carnival.status).replaceAll('_',' ') }}</span>
+        <div class="flex flex-wrap items-center gap-3">
+          <a
+            :href="`/display/carnival/${carnival.id}`"
+            target="_blank"
+            rel="noopener"
+            class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+          >
+            Big Screen Display
+          </a>
+
+          <span class="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-bold capitalize">
+            {{ String(carnival.status).replaceAll('_',' ') }}
+          </span>
+        </div>
       </div>
 
       <div v-if="errorMessage" class="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">{{ errorMessage }}</div>
