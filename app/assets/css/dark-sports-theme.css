@@ -490,3 +490,82 @@ main,
 #__nuxt > div {
   background-color: transparent;
 }
+
+
+/* ============================================================
+   TABLE DARK THEME FIX
+   Events and other data tables
+   ============================================================ */
+
+table,
+table.bg-white,
+table[class*="bg-white"] {
+  background: #081525 !important;
+  color: #e2e8f0 !important;
+}
+
+table thead,
+table thead tr,
+table thead th {
+  background: #0b1a2d !important;
+  color: #94a3b8 !important;
+  border-color: #1e3a55 !important;
+}
+
+table tbody,
+table tbody tr,
+table tbody td {
+  background: #081525 !important;
+  color: #e2e8f0 !important;
+  border-color: #172b40 !important;
+}
+
+table tbody tr:nth-child(even),
+table tbody tr:nth-child(even) td {
+  background: #09182a !important;
+}
+
+table tbody tr:hover,
+table tbody tr:hover td {
+  background: #10243a !important;
+}
+
+/* The rounded wrapper around tables */
+.overflow-x-auto,
+.overflow-hidden:has(table),
+div:has(> table) {
+  background: #081525 !important;
+  border-color: #1e3a55 !important;
+}
+
+/* Explicitly restore readable table typography */
+table .text-slate-900,
+table .text-gray-900,
+table .text-slate-800,
+table .text-gray-800,
+table .text-slate-700,
+table .text-gray-700,
+table .text-slate-600,
+table .text-gray-600 {
+  color: #e2e8f0 !important;
+}
+
+table .text-slate-500,
+table .text-gray-500,
+table .text-slate-400,
+table .text-gray-400 {
+  color: #94a3b8 !important;
+}
+
+/* Status text */
+table .text-blue-600,
+table .text-blue-700 {
+  color: #60a5fa !important;
+}
+
+table .text-green-600,
+table .text-green-700,
+table .text-emerald-600,
+table .text-emerald-700 {
+  color: #4ade80 !important;
+}
