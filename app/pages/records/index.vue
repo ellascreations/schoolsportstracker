@@ -187,14 +187,14 @@ watch(selectedHouseId, async () => {
     <section class="mb-6 grid gap-4 rounded-xl border bg-slate-900 p-5 shadow-sm md:grid-cols-4">
       <label v-if="scope!=='interschool'">
         <span class="mb-1 block text-sm font-semibold">School</span>
-        <select v-model.number="selectedSchoolId" :disabled="profile?.role!=='super_admin'" class="w-full rounded-lg border px-3 py-2 disabled:bg-slate-100">
+        <select v-model.number="selectedSchoolId" :disabled="profile?.role!=='super_admin'" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 disabled:border-slate-700 disabled:bg-slate-900 disabled:text-slate-400 disabled:opacity-100">
           <option v-for="school in schools" :key="school.id" :value="school.id">{{ school.name }}</option>
         </select>
       </label>
 
       <label v-if="scope==='house'">
         <span class="mb-1 block text-sm font-semibold">House</span>
-        <select v-model.number="selectedHouseId" class="w-full rounded-lg border px-3 py-2">
+        <select v-model.number="selectedHouseId" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
           <option :value="null">Select house</option>
           <option v-for="house in houses" :key="house.id" :value="house.id">{{ house.name }}</option>
         </select>
@@ -202,7 +202,7 @@ watch(selectedHouseId, async () => {
 
       <label>
         <span class="mb-1 block text-sm font-semibold">Sport category</span>
-        <select v-model="categoryFilter" class="w-full rounded-lg border px-3 py-2">
+        <select v-model="categoryFilter" class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30">
           <option value="">All categories</option>
           <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
         </select>
@@ -210,7 +210,7 @@ watch(selectedHouseId, async () => {
 
       <label class="md:col-span-2">
         <span class="mb-1 block text-sm font-semibold">Search</span>
-        <input v-model="search" type="search" placeholder="Sport, athlete, school or house..." class="w-full rounded-lg border px-3 py-2" />
+        <input v-model="search" type="search" placeholder="Sport, athlete, school or house..." class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30" />
       </label>
     </section>
 
