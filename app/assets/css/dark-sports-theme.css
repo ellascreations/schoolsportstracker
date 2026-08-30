@@ -261,19 +261,13 @@ a.bg-slate-900 {
 }
 
 .sst-nav-link.router-link-active {
-  color: #59aaff;
-  background: rgba(35, 136, 255, 0.13);
+  color: #ffffff;
+  background: linear-gradient(135deg, #0f55bd, #0a3988);
+  box-shadow: inset 0 0 0 1px rgba(82, 167, 255, 0.18), 0 8px 24px rgba(0, 78, 190, 0.18);
 }
 
 .sst-nav-link.router-link-active::after {
-  content: '';
-  position: absolute;
-  left: 0.7rem;
-  right: 0.7rem;
-  bottom: 0.22rem;
-  height: 2px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--sst-blue), var(--sst-green));
+  display: none;
 }
 
 /* Cards get a subtle sports-dashboard highlight */
