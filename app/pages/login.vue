@@ -41,7 +41,7 @@ const login = async () => {
         <img
           src="/images/school-sports-tracker-logo.png"
           alt="School Sports Tracker"
-          class="mx-auto mb-5 w-full max-w-[240px] object-contain drop-shadow-xl"
+          class="mx-auto mb-5 w-full max-w-[360px] object-contain drop-shadow-xl"
         />
         <p class="mt-2 text-slate-500">Sign in to continue</p>
       </div>

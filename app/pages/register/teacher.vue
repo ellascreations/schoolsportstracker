@@ -34,7 +34,7 @@ onMounted(loadOptions)
         <img
           src="/images/school-sports-tracker-logo.png"
           alt="School Sports Tracker"
-          class="mx-auto mb-5 w-full max-w-[220px] object-contain drop-shadow-xl"
+          class="mx-auto mb-5 w-full max-w-[330px] object-contain drop-shadow-xl"
         />
         <h1 class="text-3xl font-bold">Teacher Registration</h1>
         <p class="mt-2 text-slate-500">Register using your school-issued email address.</p>
