@@ -115,3 +115,31 @@ const login = async () => {
   border-color: #1e3a55 !important;
 }
 </style>
+
+
+<style>
+html,
+body,
+#__nuxt {
+  min-height: 100%;
+  margin: 0;
+  background: #020817 !important;
+}
+
+body:has(.sst-login-page) {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.10), transparent 34rem),
+    linear-gradient(180deg, #020817 0%, #030b16 100%) !important;
+}
+
+body:has(.sst-login-page) #__nuxt {
+  min-height: 100vh;
+  background: transparent !important;
+}
+
+.sst-login-page {
+  width: 100%;
+  min-height: 100vh;
+  background: transparent !important;
+}
+</style>
