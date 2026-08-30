@@ -770,8 +770,7 @@ onMounted(async () => {
         <div
           class="max-h-96 overflow-auto rounded-lg border border-slate-200"
         >
-          <table
-            class="min-w-full divide-y divide-slate-200 text-sm"
+          <table class="sst-dark-table min-w-full divide-y divide-slate-200 text-sm"
           >
             <thead
               class="sticky top-0 bg-slate-50"
@@ -960,8 +959,7 @@ onMounted(async () => {
         v-else
         class="overflow-x-auto"
       >
-        <table
-          class="min-w-full divide-y divide-slate-200 text-sm"
+        <table class="sst-dark-table min-w-full divide-y divide-slate-200 text-sm"
         >
           <thead
             class="bg-slate-50"

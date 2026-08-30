@@ -143,7 +143,7 @@ watch(() => form.record_scope, () => { if (form.record_scope !== 'house') form.h
     <section class="mt-6 overflow-hidden rounded-xl border bg-white shadow-sm">
       <div class="border-b px-5 py-4"><h2 class="font-bold">Recent Manual Entries</h2></div>
       <div v-if="!recentManual.length" class="p-8 text-center text-slate-500">No manual historical performances yet.</div>
-      <div v-else class="overflow-x-auto"><table class="min-w-full text-left text-sm"><thead class="bg-slate-50"><tr><th class="p-4">Scope</th><th>Sport</th><th>Athlete</th><th>Performance</th><th>Date</th><th></th></tr></thead><tbody><tr v-for="row in recentManual" :key="row.id" class="border-t"><td class="p-4 capitalize">{{row.record_scope}}</td><td>{{row.sport?.name}}</td><td>{{row.holder_name}}</td><td>{{row.result_display||row.result_value}}</td><td>{{row.achieved_date}}</td><td class="text-right pr-4"><button class="text-sm font-semibold text-red-600" @click="removeManual(row.id)">Delete</button></td></tr></tbody></table></div>
+      <div v-else class="overflow-x-auto"><table class="sst-dark-table min-w-full text-left text-sm"><thead class="bg-slate-50"><tr><th class="p-4">Scope</th><th>Sport</th><th>Athlete</th><th>Performance</th><th>Date</th><th></th></tr></thead><tbody><tr v-for="row in recentManual" :key="row.id" class="border-t"><td class="p-4 capitalize">{{row.record_scope}}</td><td>{{row.sport?.name}}</td><td>{{row.holder_name}}</td><td>{{row.result_display||row.result_value}}</td><td>{{row.achieved_date}}</td><td class="text-right pr-4"><button class="text-sm font-semibold text-red-600" @click="removeManual(row.id)">Delete</button></td></tr></tbody></table></div>
     </section>
   </main>
 </template>

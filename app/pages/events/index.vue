@@ -35,7 +35,7 @@ onMounted(async () => {
     <div
       class="mt-6 overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-xl"
     >
-      <table class="w-full text-left text-slate-200">
+      <table class="sst-dark-table w-full text-left text-slate-200">
         <thead class="border-b border-slate-700 bg-slate-800 text-sm text-slate-300">
           <tr>
             <th class="p-4 font-semibold">Event</th>

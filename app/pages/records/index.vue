@@ -232,7 +232,7 @@ watch(selectedHouseId, async () => {
         </div>
 
         <div class="overflow-x-auto">
-          <table class="min-w-full text-left text-sm">
+          <table class="sst-dark-table min-w-full text-left text-sm">
             <thead class="bg-white text-slate-500"><tr>
               <th class="px-5 py-3">Rank</th><th>Performance</th><th>Athlete</th><th>School</th><th>House</th><th>Date achieved</th>
             </tr></thead>

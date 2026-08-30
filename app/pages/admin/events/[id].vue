@@ -615,7 +615,7 @@ watch(() => route.params.id, async (value, oldValue) => {
         <p class="text-sm text-slate-500">Set lanes or bib numbers before the event.</p>
 
         <div class="mt-4 overflow-x-auto">
-          <table class="w-full min-w-[760px] text-left">
+          <table class="sst-dark-table w-full min-w-[760px] text-left">
             <thead class="bg-slate-50">
               <tr><th class="p-3">Student</th><th>House</th><th>Lane</th><th>Bib</th><th></th></tr>
             </thead>

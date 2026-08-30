@@ -87,7 +87,7 @@ onMounted(load)
       <div v-if="loading" class="p-8 text-center text-slate-500">Loading users...</div>
       <div v-else-if="!filteredUsers.length" class="p-8 text-center text-slate-500">No users match your search.</div>
       <div v-else class="overflow-x-auto">
-        <table class="min-w-full divide-y text-sm">
+        <table class="sst-dark-table min-w-full divide-y text-sm">
           <thead class="bg-slate-50"><tr><th class="px-4 py-3 text-left">User</th><th class="px-4 py-3 text-left">School</th><th class="px-4 py-3 text-left">Role</th><th class="px-4 py-3 text-left">Logout</th><th class="px-4 py-3 text-right">Save</th></tr></thead>
           <tbody class="divide-y">
             <tr v-for="u in filteredUsers" :key="u.id">

@@ -569,3 +569,45 @@ table .text-emerald-600,
 table .text-emerald-700 {
   color: #4ade80 !important;
 }
+
+
+/* ============================================================
+   SITE-WIDE DEDICATED DARK TABLES
+   ============================================================ */
+table.sst-dark-table,
+table.sst-dark-table thead,
+table.sst-dark-table tbody,
+table.sst-dark-table tr,
+table.sst-dark-table th,
+table.sst-dark-table td {
+  border-color: #172b40 !important;
+}
+
+table.sst-dark-table {
+  background: #081525 !important;
+  color: #e2e8f0 !important;
+}
+
+table.sst-dark-table thead,
+table.sst-dark-table thead tr,
+table.sst-dark-table thead th {
+  background: #0b1a2d !important;
+  color: #cbd5e1 !important;
+}
+
+table.sst-dark-table tbody,
+table.sst-dark-table tbody tr,
+table.sst-dark-table tbody td {
+  background: #081525 !important;
+  color: #e2e8f0 !important;
+}
+
+table.sst-dark-table tbody tr:nth-child(even),
+table.sst-dark-table tbody tr:nth-child(even) td {
+  background: #09182a !important;
+}
+
+table.sst-dark-table tbody tr:hover,
+table.sst-dark-table tbody tr:hover td {
+  background: #10243a !important;
+}
