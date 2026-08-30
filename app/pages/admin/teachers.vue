@@ -62,7 +62,7 @@ const loadTeachers = async () => {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id,email,first_name,last_name,role,active')
+    .select('id,email,first_name,last_name,role,active,school_id,registration_status,registration_source')
     .eq('role', 'teacher')
     .order('last_name', { ascending: true })
     .order('first_name', { ascending: true })
@@ -111,6 +111,33 @@ const addTeacher = async () => {
       'Could not create teacher.'
   } finally {
     saving.value = false
+  }
+}
+
+const manageRegistration = async (teacher: any, action: 'approve' | 'reject') => {
+  errorMessage.value = ''
+  successMessage.value = ''
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) throw new Error('Authentication required.')
+
+    await $fetch('/api/admin/teachers/registration', {
+      method: 'POST',
+      body: {
+        action,
+        teacher_id: teacher.id,
+        access_token: session.access_token,
+      },
+    })
+
+    successMessage.value = action === 'approve'
+      ? `${teacher.first_name} ${teacher.last_name} approved.`
+      : `${teacher.first_name} ${teacher.last_name} rejected.`
+
+    await loadTeachers()
+  } catch (error: any) {
+    errorMessage.value = error?.data?.statusMessage || error?.message || 'Could not update teacher registration.'
   }
 }
 
@@ -519,6 +546,7 @@ onMounted(loadTeachers)
               <th class="px-4 py-3 text-left">Teacher</th>
               <th class="px-4 py-3 text-left">Email</th>
               <th class="px-4 py-3 text-left">Status</th>
+              <th class="px-4 py-3 text-left">Registration</th>
               <th class="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
@@ -534,10 +562,35 @@ onMounted(loadTeachers)
                   {{ teacher.active ? 'Active' : 'Inactive' }}
                 </span>
               </td>
+              <td class="px-4 py-4">
+                <span
+                  class="rounded-full px-2 py-1 text-xs font-bold capitalize"
+                  :class="teacher.registration_status === 'pending'
+                    ? 'bg-amber-100 text-amber-700'
+                    : teacher.registration_status === 'rejected'
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-green-100 text-green-700'"
+                >
+                  {{ teacher.registration_status || 'approved' }}
+                </span>
+                <div v-if="teacher.registration_source === 'self_registration'" class="mt-1 text-xs text-slate-400">Self registered</div>
+              </td>
               <td class="px-4 py-4 text-right">
-                <button class="rounded-lg border px-3 py-2 text-xs font-semibold" @click="toggleActive(teacher)">
-                  {{ teacher.active ? 'Deactivate' : 'Activate' }}
-                </button>
+                <div class="flex flex-wrap justify-end gap-2">
+                  <button
+                    v-if="teacher.registration_status === 'pending'"
+                    class="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white"
+                    @click="manageRegistration(teacher, 'approve')"
+                  >Approve</button>
+                  <button
+                    v-if="teacher.registration_status === 'pending'"
+                    class="rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-700"
+                    @click="manageRegistration(teacher, 'reject')"
+                  >Reject</button>
+                  <button class="rounded-lg border px-3 py-2 text-xs font-semibold" @click="toggleActive(teacher)">
+                    {{ teacher.active ? 'Deactivate' : 'Activate' }}
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>

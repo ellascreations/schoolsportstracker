@@ -12,6 +12,24 @@ const login = async () => {
   const { error } = await supabase.auth.signInWithPassword({ email: email.value, password: password.value })
   loading.value = false
   if (error) { errorMessage.value = error.message; return }
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('active,registration_status')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (profile && !profile.active) {
+      await supabase.auth.signOut()
+      errorMessage.value = profile.registration_status === 'pending'
+        ? 'Your teacher registration is waiting for School Admin approval.'
+        : 'Your account is not active. Please contact your School Admin.'
+      return
+    }
+  }
+
   await navigateTo('/dashboard')
 }
 </script>
@@ -32,6 +50,10 @@ const login = async () => {
           {{ loading ? 'Signing in…' : 'Sign in' }}
         </button>
       </form>
+      <div class="mt-5 text-center text-sm text-slate-500">
+        Teacher at a participating school?
+        <NuxtLink to="/register/teacher" class="font-semibold text-emerald-700">Register here</NuxtLink>
+      </div>
     </div>
   </main>
 </template>
