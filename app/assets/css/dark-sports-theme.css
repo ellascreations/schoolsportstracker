@@ -343,3 +343,150 @@ button.bg-slate-100,a.bg-slate-100,button.bg-gray-100,a.bg-gray-100{background:#
 ::-webkit-scrollbar{width:11px;height:11px}::-webkit-scrollbar-track{background:#06101d}::-webkit-scrollbar-thumb{background:#29435d;border-radius:999px;border:2px solid #06101d}
 input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.8}
 input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus{-webkit-text-fill-color:#f8fafc;-webkit-box-shadow:0 0 0 1000px #071321 inset}
+
+
+/* ============================================================
+   DARK PANELS / CARDS ACROSS ALL APPLICATION PAGES
+   ============================================================ */
+
+/* Standard white/light cards and containers */
+.bg-white,
+.bg-white\/95,
+.bg-white\/90,
+.bg-white\/80,
+.bg-white\/75,
+.bg-white\/70,
+.bg-white\/60,
+.bg-white\/50,
+.bg-slate-50,
+.bg-slate-100,
+.bg-gray-50,
+.bg-gray-100 {
+  background-color: #081525 !important;
+  color: #f8fafc !important;
+}
+
+/* Common cards generated throughout Admin / Teacher / Student pages */
+div[class*="bg-white"],
+section[class*="bg-white"],
+article[class*="bg-white"],
+form[class*="bg-white"],
+aside[class*="bg-white"] {
+  background-color: #081525 !important;
+  color: #f8fafc !important;
+}
+
+/* Light panels nested inside dark cards */
+div[class*="bg-slate-50"],
+section[class*="bg-slate-50"],
+div[class*="bg-gray-50"],
+section[class*="bg-gray-50"] {
+  background-color: #0b1a2d !important;
+}
+
+/* Card borders */
+div[class*="border-slate-200"],
+section[class*="border-slate-200"],
+article[class*="border-slate-200"],
+form[class*="border-slate-200"],
+div[class*="border-gray-200"],
+section[class*="border-gray-200"] {
+  border-color: #1e3a55 !important;
+}
+
+/* Headings and ordinary text inside former white cards */
+.bg-white h1,
+.bg-white h2,
+.bg-white h3,
+.bg-white h4,
+.bg-white h5,
+.bg-white h6,
+[class*="bg-white"] h1,
+[class*="bg-white"] h2,
+[class*="bg-white"] h3,
+[class*="bg-white"] h4 {
+  color: #f8fafc !important;
+}
+
+/* Table shells */
+table,
+.overflow-x-auto,
+.overflow-hidden[class*="border"] {
+  border-color: #1e3a55 !important;
+}
+
+thead,
+thead tr {
+  background-color: #0b1a2d !important;
+}
+
+tbody {
+  background-color: #081525 !important;
+}
+
+tbody tr {
+  background-color: #081525 !important;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #09182a !important;
+}
+
+tbody tr:hover {
+  background-color: #10243a !important;
+}
+
+/* Inputs embedded in cards */
+.bg-white input,
+.bg-white select,
+.bg-white textarea,
+[class*="bg-white"] input,
+[class*="bg-white"] select,
+[class*="bg-white"] textarea {
+  background-color: #06111f !important;
+  color: #f8fafc !important;
+  border-color: #29435d !important;
+}
+
+/* Dropdowns and popup panels */
+.absolute[class*="shadow"],
+.fixed[class*="shadow"],
+[role="dialog"],
+[role="menu"],
+[role="listbox"] {
+  background-color: #081525 !important;
+  color: #f8fafc !important;
+  border-color: #1e3a55 !important;
+}
+
+/* Neutral secondary action boxes/buttons */
+.bg-slate-200,
+.bg-gray-200 {
+  background-color: #16283d !important;
+}
+
+/* Keep semantic alert/status boxes dark but recognisable */
+.bg-red-50 {
+  background-color: rgba(127,29,29,.28) !important;
+}
+.bg-green-50,
+.bg-emerald-50 {
+  background-color: rgba(6,78,59,.30) !important;
+}
+.bg-blue-50 {
+  background-color: rgba(30,64,175,.28) !important;
+}
+.bg-yellow-50,
+.bg-amber-50 {
+  background-color: rgba(120,53,15,.30) !important;
+}
+.bg-purple-50,
+.bg-violet-50 {
+  background-color: rgba(76,29,149,.28) !important;
+}
+
+/* Ensure page content area never exposes a white background */
+main,
+#__nuxt > div {
+  background-color: transparent;
+}
