@@ -35,8 +35,8 @@ const login = async () => {
 </script>
 
 <template>
-  <main class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 px-4">
-    <div class="sst-login-page w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+  <main class="sst-login-page flex min-h-screen items-center justify-center px-4">
+    <div class="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-950 p-8 shadow-2xl">
       <div class="mb-7 text-center">
         <img
           src="/images/school-sports-tracker-logo.png"
@@ -64,82 +64,23 @@ const login = async () => {
 
 <style scoped>
 .sst-login-page {
-  min-height: 100vh;
   background:
-    radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.10), transparent 34rem),
-    linear-gradient(180deg, #020817 0%, #030b16 100%) !important;
+    radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.12), transparent 34rem),
+    linear-gradient(180deg, #020817 0%, #030b16 100%);
   color: #f8fafc;
 }
 
-.sst-login-page :deep(.bg-white),
-.sst-login-page :deep(.bg-slate-50),
-.sst-login-page :deep(.bg-gray-50),
-.sst-login-page :deep(.bg-slate-100),
-.sst-login-page :deep(.bg-gray-100) {
-  background-color: #081525 !important;
+.sst-login-page input {
+  background: #071321;
+  border-color: #29435d;
+  color: #f8fafc;
 }
 
-.sst-login-page :deep(.text-slate-900),
-.sst-login-page :deep(.text-gray-900),
-.sst-login-page :deep(.text-slate-800),
-.sst-login-page :deep(.text-gray-800) {
-  color: #f8fafc !important;
+.sst-login-page input::placeholder {
+  color: #64748b;
 }
 
-.sst-login-page :deep(.text-slate-600),
-.sst-login-page :deep(.text-gray-600),
-.sst-login-page :deep(.text-slate-500),
-.sst-login-page :deep(.text-gray-500) {
-  color: #94a3b8 !important;
-}
-
-.sst-login-page :deep(input) {
-  background: #071321 !important;
-  border-color: #29435d !important;
-  color: #f8fafc !important;
-}
-
-.sst-login-page :deep(input::placeholder) {
-  color: #64748b !important;
-}
-
-.sst-login-page :deep(input:focus) {
-  border-color: #0ea5e9 !important;
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.18) !important;
-}
-
-.sst-login-page :deep(.border-slate-200),
-.sst-login-page :deep(.border-gray-200),
-.sst-login-page :deep(.border-slate-300),
-.sst-login-page :deep(.border-gray-300) {
-  border-color: #1e3a55 !important;
-}
-</style>
-
-
-<style>
-html,
-body,
-#__nuxt {
-  min-height: 100%;
-  margin: 0;
-  background: #020817 !important;
-}
-
-body:has(.sst-login-page) {
-  background:
-    radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.10), transparent 34rem),
-    linear-gradient(180deg, #020817 0%, #030b16 100%) !important;
-}
-
-body:has(.sst-login-page) #__nuxt {
-  min-height: 100vh;
-  background: transparent !important;
-}
-
-.sst-login-page {
-  width: 100%;
-  min-height: 100vh;
-  background: transparent !important;
+.sst-login-page input:focus {
+  border-color: #0ea5e9;
 }
 </style>
